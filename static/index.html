@@ -7,59 +7,27 @@
     <script src='https://d3js.org/d3.v5.min.js'></script>
 </head>
 <body>
-    
-    <div class="parent">
-        <div id="pile"></div>
+    <div class="boxContainer". style="display: inline-block">
+        <div class="card" id="pile"></div>
+        <div class="card" id="turnedcard">
+            <div style="margin-top: 60px; margin-left: 10px">
+                <img src="images/uno_logo.png" width="130">
+            </div>
+        </div>    
+        <button type="button" style="margin-left:100px; margin-top: 50px;">INEGLEIT!!!</button>   
     </div>
     
-    <div class="parent" >
-        <div id="hand" style="float: left"></div>
-        <button type="button">INEGLEIT!!!</button>
-    </div>
+    <h2>Your cards</h3>
+
+    <div id="myhand"></div>
+
     <script>
     // move to config
-    var width = 200, 
-    height = 300;
+    var width = 150, 
+    height = 225;
 
-    var topcard = [{x: 30, y: 30, color: "yellow", number: 1}]
+    var topcard = {x: 30, y: 30, color: "yellow", number: 1}
 
-    var topsvg = d3.select("#pile")
-        .append("svg")
-        .attr("width", "300px")
-        .attr("height", "400px");
-
-    topsvg.selectAll("toprectangle")
-        .data(topcard)
-        .enter()
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("x", function (d) { return d.x })
-        .attr("y", function (d) { return d.y })
-        .attr("style", function (d) { return "fill:" + d.color })
-
-    var text = topsvg.selectAll("text")
-        .data(topcard)
-        .enter()
-        .append("text")
-        .attr("x", function (d) { return d.x +20 })
-        .attr("y", function (d) { return d.y +50 })
-        .text( function (d) { return d.number })
-        .attr("font-size", "50px")
-        .attr("font-family", "sans-serif")
-        .attr("fill", function (d) { 
-            if ( d.color == "yellow" ) { return "black" }
-            else { return "white" }
-        })
-
-
-    var svg = d3.select("#hand")
-        .append("svg")
-        .attr("width", "800px")
-        .attr("height", "500px");
-
-    // should move to config
-    
     // test cards 
     var cards = [{x: 100, y: 100, color: "red", number: 2}, 
                  {x: 200, y: 110, color: "blue", number: 7},
@@ -67,30 +35,66 @@
                  {x: 400, y: 130, color: "black", number: "+4"},
                  {x: 500, y: 140, color: "yellow", number: "+2"}
                 ]
+            
+    d3.select("#pile")
+        .style("background-color", topcard.color)
+        .append("p")
+        .attr("class", "cardtext")
+        .text( function(d) { return topcard.number })
+        .style("color", function (d) { 
+            if ( topcard.color == "yellow" ) { return "black" }
+            else { return "white" }
+        })
 
-    svg.selectAll("rectangle")
+    d3.select("#turnedcard")
+        .on("mouseover", function() {
+			d3.select(this)
+			.style("border-color", "grey")
+		})
+		.on("mouseout", function () {
+			d3.select(this)
+			.style("border-color", "black" )
+        })
+        .on("click", function(d) {
+            console.log("card picked up")
+        })
+    
+    d3.selectAll("button")
+        .on("click", function() {
+            console.log("clicked")
+        })
+
+    var hand_div= d3.select("#myhand")
+        .append("div")
+        .attr("id", "card")
+        .attr("width", "900px")
+        .attr("height", "300px");
+
+    hand_div.selectAll("cards")
         .data(cards)
         .enter()
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("x", function (d) { return d.x })
-        .attr("y", function (d) { return d.y })
-        .attr("style", function (d) { return "fill:" + d.color })
-
-    var text = svg.selectAll("text")
-        .data(cards)
-        .enter()
-        .append("text")
-        .attr("x", function (d) { return d.x +20 })
-        .attr("y", function (d) { return d.y +50 })
-        .text( function (d) { return d.number })
-        .attr("font-size", "50px")
-        .attr("font-family", "sans-serif")
-        .attr("fill", function (d) { 
+        .append("div")
+        .attr("class", "card")
+        .style("background-color", function (d) { return d.color })
+        .on("mouseover", function() {
+			d3.select(this)
+			.style("border-color", "grey")
+		})
+		.on("mouseout", function () {
+			d3.select(this)
+			.style("border-color", "black" )
+        })
+        .on("click", function (d) {
+			console.log(d.color, d.number, "clicked")
+		})
+        .append("p")
+        .attr("class", "cardtext")
+        .text( function(d) { return d.number })
+        .style("color", function (d) { 
             if ( d.color == "yellow" ) { return "black" }
             else { return "white" }
         })
+        
     </script>
 </body>
 </html>
