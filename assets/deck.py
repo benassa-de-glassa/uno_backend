@@ -1,4 +1,4 @@
-import numpy as np
+import random
 
 class Deck():
     """
@@ -56,8 +56,7 @@ class Deck():
             self.allcards.append("black", 1) # +4 card
             self.N += 2
 
-        self.current_cards = np.arange(len(self.allcards)) # = [0, 1, 2, ..., 106, 107]
-
+        self.current_cards = self.allcards.copy()
         # shuffles the cards
         self.current_cards = self.shuffle_cards(self.current_cards)
 
@@ -65,25 +64,20 @@ class Deck():
         self.pile.append(self.current_cards.pop())
 
     def shuffle_cards(self, cards):
-        return list(np.random.permutation(cards))
+        return random.shuffle(self.current_cards)
 
-    def get_card(self, i):
-        return self.allcards[i]
+    def get_top_card(self):
+        return self.pile[-1]
 
-    def deal_cards(self, n=7):
+    def deal_cards(self, n):
         if n < self.N:
-            cards = [self.get_card(self.current_cards.pop()) for i in range(n)]
+            cards = [self.current_cards.pop() for i in range(n)]
             return cards
         else:
             raise ValueError
 
-    def play_card(self, i):
-        top_card = self.get_card(self.pile[-1])
-        if self.get_card(i).playable(top_card):
-            self.pile.append(i)
-            return True
-        else:
-            return False
+    def play_card(self, card):
+        self.pile.append(card)
 
 class Card():
     def __init__(self, color, number):
@@ -97,8 +91,14 @@ class Card():
 
         if self.color == "black":
             return True
-        
-        if self.color == top_card.color or self.number == top_card.number():
+        elif self.color == top_card.color or self.number == top_card.number:
             return True
-        
-        return False
+        else: return False
+    
+    def inegleitable(self, top_card):
+        """ 
+        tests if the card can be inegleit
+        """
+        if self.color == top_card.color and self.number == top_card.number:
+            return True
+        else: return False

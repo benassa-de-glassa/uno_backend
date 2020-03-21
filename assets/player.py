@@ -8,27 +8,19 @@ class Player():
     hand            : cards on the hand
 
     """
-    def __init__(self, game, name, id=0):
+    def __init__(self, game, name, index=0):
         """
         
         """
         self.game = game
         self.name = name
-        self.id = id
+        self.index = index
 
         self.hand = []
+
+        self.said_uno = False
 
     def add_cards(self, cards):
         self.hand.extend(cards)
 
-    def lay_card(self, i):
-        """
-        i : index of the card in self.cards. 
-        needs to tests if the card can be played and pops it if it can
-        """
-
-
-    
-    def shout_uno(self):
-        pass
 
