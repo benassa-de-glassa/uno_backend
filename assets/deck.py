@@ -52,19 +52,19 @@ class Deck():
 
         # creates the black cards
         for i in range(4):
-            self.allcards.append("black", 0) # choose color
-            self.allcards.append("black", 1) # +4 card
+            self.allcards.append(Card("black", 0)) # choose color
+            self.allcards.append(Card("black", 1)) # +4 card
             self.N += 2
 
         self.current_cards = self.allcards.copy()
         # shuffles the cards
-        self.current_cards = self.shuffle_cards(self.current_cards)
+        self.shuffle_cards()
 
         # places the starting card:
         self.pile.append(self.current_cards.pop())
 
-    def shuffle_cards(self, cards):
-        return random.shuffle(self.current_cards)
+    def shuffle_cards(self):
+        random.shuffle(self.current_cards)
 
     def get_top_card(self):
         return self.pile[-1]
@@ -102,3 +102,6 @@ class Card():
         if self.color == top_card.color and self.number == top_card.number:
             return True
         else: return False
+
+    def __str__(self):
+        return self.color + str(self.number)
