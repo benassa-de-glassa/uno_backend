@@ -1,4 +1,6 @@
 import numpy as np
+import json
+import random
 
 class Deck():
     """
@@ -21,9 +23,9 @@ class Deck():
 
     """
     def __init__(self):
-        self.N = 0 
-        self.allcards = []
-        self.pile = []
+        self.N = 0 # anzahl karten
+        self.allcards = [] # verdeckter stapel
+        self.pile = [] # offener stapel
 
         """
         For colored cards:
@@ -42,30 +44,30 @@ class Deck():
         """
 
         # creates all colored cards
-        for col in ["red", "green", "blue", "yellow"]:
-            self.allcards.append(Card(col, 0))
+        for color in ["red", "green", "blue", "yellow"]:
+            # add a single zero per color
+            self.allcards.append(Card(color, 0, self.N))
             self.N += 1
+            # add two of each kind
             for i in range(12):
-                self.allcards.append(Card(col, i+1))
-                self.allcards.append(Card(col, i+1))
+                self.allcards.append(Card(color, i+1, self.N))
+                self.allcards.append(Card(color, i+1, self.N+1))
                 self.N += 2
-
         # creates the black cards
         for i in range(4):
-            self.allcards.append("black", 0) # choose color
-            self.allcards.append("black", 1) # +4 card
+            self.allcards.append(Card("black", 0, self.N)) # choose color
+            self.allcards.append(Card("black", 1, self.N+1)) # +4 card
             self.N += 2
+        
 
-        self.current_cards = np.arange(len(self.allcards)) # = [0, 1, 2, ..., 106, 107]
-
+        # make a copy of the deck
+        self.current_cards = self.allcards.copy() 
         # shuffles the cards
-        self.current_cards = self.shuffle_cards(self.current_cards)
+        random.shuffle(self.current_cards)
+        # self.current_cards = self.shuffle_cards(self.current_cards)
 
         # places the starting card:
         self.pile.append(self.current_cards.pop())
-
-    def shuffle_cards(self, cards):
-        return list(np.random.permutation(cards))
 
     def get_card(self, i):
         return self.allcards[i]
@@ -84,11 +86,27 @@ class Deck():
             return True
         else:
             return False
+    
+    def to_json(self):
+        return {
+            'stack' : [Card.to_json(card) for card in self.allcards],
+            'pile': [Card.to_json(card) for card in self.pile]
+        }
+
+    def from_json(self, deck):
+        self.allcards = []
+        self.pile = []
+        for card in deck['stack']:
+            self.allcards.append( Card(card['color'], card['number'], card['uid']))
+        for card in deck['pile']:
+            self.pile.append( Card(card['color'], card['number'], card['uid']))
+        
 
 class Card():
-    def __init__(self, color, number):
+    def __init__(self, color, number, uid):
         self.color = color
         self.number = number
+        self.id = uid
 
     def playable(self, top_card):
         """
@@ -98,7 +116,14 @@ class Card():
         if self.color == "black":
             return True
         
-        if self.color == top_card.color or self.number == top_card.number():
+        if self.color == top_card.color or self.number == top_card.number:
             return True
         
         return False
+    def to_json(self):
+        return {'number': self.number, 'color': self.color, 'uid': self.id }
+
+    def from_json(self, card):
+        self.color = card['color']
+        self.number = card['number']
+

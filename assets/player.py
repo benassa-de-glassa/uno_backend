@@ -4,17 +4,17 @@ class Player():
 
     game            : parent game
     name            : identifier
-    id              : identifier
+    uid             : identifier
     hand            : cards on the hand
 
     """
-    def __init__(self, game, name, id=0):
+    def __init__(self, game, name, uid=0):
         """
         
         """
         self.game = game
         self.name = name
-        self.id = id
+        self.id = uid
 
         self.hand = []
 
@@ -27,8 +27,15 @@ class Player():
         needs to tests if the card can be played and pops it if it can
         """
 
-
     
     def shout_uno(self):
         pass
+
+    def to_json(self):
+        return {
+            'name': self.name
+            }
+
+    def from_json(self, player):
+        self.name = player['name']
 

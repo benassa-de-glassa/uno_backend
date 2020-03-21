@@ -1,25 +1,34 @@
 from fastapi import APIRouter
+import os
 
-# from assets import Game, Player
-
+from assets.game import Inegleit
 
 router = APIRouter()
+
+game_file = 'uno.json'
 
 @router.get('/start_game')
 def start_game():
     """
     beginnt das Spiel
     """
-    pass
+    game = Inegleit()
+    game.add_player('spieler 1')
+    game.add_player('spieler 2')
+    game.add_player('spieler 3')
+    game.to_json(game_file)
+    return 200
+    
 
 @router.post('/karten_verteilen')
-def karten_verteilen():
+def karten_verteilen(player_id: int, n_cards: int):
     """
     Teilt karten aus dem Deck an Spieler aus
     """
+    game = Inegleit()
+    game.from_json(game_file)
 
-    for player in players:
-        pass
+    print(game.players)
 
 @router.get('/turn')
 def whose_turn():
