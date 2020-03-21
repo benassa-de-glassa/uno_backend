@@ -1,7 +1,7 @@
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
-from routers import game, player
+from .routers import game, player
 
 app = FastAPI()
 

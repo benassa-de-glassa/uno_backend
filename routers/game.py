@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from assets import Game, Player
+# from assets import Game, Player
 
 
 router = APIRouter()
