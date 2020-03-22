@@ -21,9 +21,8 @@ def start_game():
     game.to_json(game_file)
     return 200
 
-
-@router.post('/karten_verteilen')
-def karten_verteilen(player_id: int, n_cards: int):
+@router.post('/deal_cards')
+def deal_cards(player_id: int, n_cards: int):
     """
     Teilt karten aus dem Deck an Spieler aus
     """

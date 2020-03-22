@@ -1,16 +1,17 @@
-<!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title>Choose name</title>
+<script type="text/javascript" src="index.js"></script>
 </head>
 <body>
-    <div align="center">
-        <p>Please choose your name:</p>
-        <input type="text" id="name">
-        <button>OK</button>
+    <div>
+        <h1> UNO </h1>
     </div>
-    
-    
+    <div> 
+        <form action="/player/add_player" method="POST">
+            <label for="fname">name</label><br>
+            <input type="text" id="name" name="name" ><br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
 </body>
 </html>
