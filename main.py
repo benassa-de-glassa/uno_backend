@@ -26,16 +26,3 @@ app.add_middleware(
 app.include_router(
     game.router,
     prefix='/game')
-
-"""
-app.include_router(
-    player.router,
-    prefix='/player')
-
-
-@app.on_event('startup')
-def start_game():
-    game_object = Inegleit()
-    print(game_object)
-
-"""

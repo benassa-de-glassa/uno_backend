@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 import os
 
-from routers.player import karten
 from assets.game import Inegleit
 
 router = APIRouter()
@@ -54,14 +53,6 @@ def play_card(player_id: int, card_id: int):
     """
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
-    """
-    
-    return karten(card_id)
-
-@router.post('/add_player')
-def add_player(player_name: str):
-    """
-    Fügt dem Spiel einen Spieler hinzu
     """
     pass
 
