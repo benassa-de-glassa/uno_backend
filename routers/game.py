@@ -12,8 +12,8 @@ def start_game():
     """
     pass
 
-@router.post('/karten_verteilen')
-def karten_verteilen():
+@router.post('/deal_cards')
+def deal_cards():
     """
     Teilt karten aus dem Deck an Spieler aus
     """
