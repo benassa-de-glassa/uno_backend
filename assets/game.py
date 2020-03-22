@@ -13,7 +13,8 @@ class Inegleit():
     players (list)      : list of all Player(class)
     deck (class)        : deck handling the cards in the deck as well as the pile of used cards
     forward (bool)      : True if the playing direction is forward, False otherwise
-    active_player (int) : index of the player whos turn it is
+    order (list)        : list of userids in order
+    active_player (int) : index of the player in order whos turn it is
 
     methods:
 
@@ -26,11 +27,13 @@ class Inegleit():
     def __init__(self):
         self.unique_id = 0 # counts up from 0 to assign unique ids
         self.n_players = 0
-        self.players = []
+        self.players = {}
         self.deck = Deck()
 
         # playing direction
         self.forward = True
+        self.order = []
+
         self.active_player = 0
 
     def add_player(self, name):
@@ -40,29 +43,40 @@ class Inegleit():
         uid = self.unique_id
         self.unique_id += 1
 
-        p = Player(self, name, uid)
-        self.players.append(p)
+        p = Player(name, uid)
+        self.players[uid] = p
         self.n_players += 1
+        self.order.append(uid)
         
         return uid
-
-    def remove_player(self, id):
+    
+    def remove_player(self, uid):
         pass
 
-    def start_game(self):
-        self.player_indexes = list(range(self.n_players))
-        for p in self.players:
-            dealt_cards = self.deck.deal_cards(7)
+    def deal_cards(self, uid, n):
+        # lifts the n top cards of the deck
+        cards = self.deck.deal_cards(n)
+        # adds them to the hand of the player with id=uid
+        self.players[uid].add_cards(cards)
+        
+        return [card.attr for card in cards]
 
-            p.add_cards(dealt_cards)
-            
-        # chooses a random player to begin
-        self.active_player = np.random.randint(self.n_players)
+    def start_game(self):
+        self.deck.place_starting_card()
 
     def next_player(self, n=1):
         # n=2 means one player is skipped
         i = (self.active_player + self.forward*n) % self.n_players
         self.active_player = i
+
+    def get_active_player_id(self):
+        return self.order[self.active_player]
+    
+    def top_card(self):
+        return self.deck.get_top_card().attr
+
+    def get_cards(self, pid):
+        return [ card.attr for card in self.players[pid].attr["hand"] ]
 
     def event_play_card(self, player_index, card):
         """ 

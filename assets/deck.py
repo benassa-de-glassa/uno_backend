@@ -63,6 +63,7 @@ class Deck():
         # shuffles the cards
         self.shuffle_cards()
 
+    def place_starting_card(self):
         # places the starting card:
         self.pile.append(self.current_cards.pop())
 
@@ -80,6 +81,7 @@ class Deck():
             cards = [self.current_cards.pop() for i in range(n)]
             return cards
         else:
+            # TODO: reshuffle
             raise ValueError
             
     def to_json(self):
@@ -102,9 +104,9 @@ class Deck():
 class Card():
     def __init__(self, color, number, id):
         self.attr = {
+            "id": id,
             "color": color,
-            "number": number,
-            "id": id
+            "number": number
         }
 
     def playable(self, top_card):
