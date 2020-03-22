@@ -1,8 +1,9 @@
 import numpy as np
 
-from player import Player
-from deck import Deck
+from .player import Player
+from .deck import Deck
 
+import json
 
 class Inegleit():
     """
@@ -46,7 +47,7 @@ class Inegleit():
             dealt_cards = self.deck.deal_cards(7)
 
             p.add_cards(dealt_cards)
-
+            
         # chooses a random player to begin
         self.active_player = np.random.randint(self.n_players)
 
@@ -94,24 +95,40 @@ class Inegleit():
 
             else: pass # TODO: error message
 
-        def event_pickup_card(self, player, n=1):
-            cards = self.deck.deal_cards(n) # list of length n
-            player.add_cards(cards)
-            player.said_uno == False
+    def event_pickup_card(self, player, n=1):
+        cards = self.deck.deal_cards(n) # list of length n
+        player.add_cards(cards)
+        player.said_uno == False
 
-        def event_cant_play(self):
-            self.next_player()
+    def event_cant_play(self):
+        self.next_player()
 
-        def event_uno(self, player):
-            if len(player.hand) == 1:
-                player.said_uno == True
-            else: pass # TODO: tell the player he's an idiot
+    def event_uno(self, player):
+        if len(player.hand) == 1:
+            player.said_uno == True
+        else: pass # TODO: tell the player he's an idiot
 
-        def event_player_finished(self, player):
-            if player.said_uno:
-                pass # congratulate him
-            else:
-                pass # force him to pick up two cards and laugh at him
+    def event_player_finished(self, player):
+        if player.said_uno:
+            pass # congratulate him
+        else:
+            pass # force him to pick up two cards and laugh at him
+      
 
-        
+    def to_json(self, filename):
+        game = {
+            'game': 'uno',
+            'direction': self.forward,
+            'players': [player.to_json() for player in self.players],
+            'deck': self.deck.to_json(), 
+        }
+        with open(filename, 'w') as outfile:
+            json.dump(game, outfile)
 
+    def from_json(self, filename):
+        with open(filename, 'r') as infile:
+            game = json.load(infile)
+
+            self.forward = game['direction']
+            self.players = [Player(self, player['name']) for player in game['players']]
+            self.deck = Deck().from_json(game['deck'])
