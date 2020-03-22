@@ -3,6 +3,8 @@ import os
 
 from assets.game import Inegleit
 
+from routers.player import karten
+
 router = APIRouter()
 
 game_file = 'uno.json'
@@ -18,7 +20,7 @@ def start_game():
     game.add_player('spieler 3')
     game.to_json(game_file)
     return 200
-    
+
 
 @router.post('/karten_verteilen')
 def karten_verteilen(player_id: int, n_cards: int):
@@ -28,7 +30,6 @@ def karten_verteilen(player_id: int, n_cards: int):
     game = Inegleit()
     game.from_json(game_file)
 
-    print(game.players)
 
 @router.get('/turn')
 def whose_turn():
@@ -37,9 +38,11 @@ def whose_turn():
     """
     pass
 
-@router.get('/valid_card')
-def valid_card(card_id: int):
+@router.post('/play_card')
+def play_card(player_id: int, card_id: int):
     """
     gibt zurück ob eine zu spielende Karte erlaubt ist
+    und spielt diese im backend
     """
-    pass
+    
+    return karten(card_id)

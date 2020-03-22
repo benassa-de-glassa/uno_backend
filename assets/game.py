@@ -45,7 +45,7 @@ class Inegleit():
             game = json.load(infile)
 
             self.forward = game['direction']
-            self.players = [Player(self, player['name']).from_json(player) for player in game['players']]
+            self.players = [Player(self, player['name']) for player in game['players']]
             self.deck = Deck().from_json(game['deck'])
 
 
