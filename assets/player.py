@@ -15,12 +15,14 @@ class Player():
         self.game = game
         self.name = name
         self.id = uid
-
+        
         self.hand = []
+
+        self.said_uno = False
 
     def add_cards(self, cards):
         self.hand.extend(cards)
-
+        
     def lay_card(self, i):
         """
         i : index of the card in self.cards. 
@@ -30,7 +32,7 @@ class Player():
     
     def shout_uno(self):
         pass
-
+      
     def to_json(self):
         return {
             'name': self.name

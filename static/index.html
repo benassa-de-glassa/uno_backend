@@ -1,18 +1,100 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <script type="text/javascript" src="index.js"></script>
-    </head>
-    <body>
-        <div>
-            <h1> UNO </h1>
-        </div>
-        <div> 
-            <form action="/player/add_player" method="POST">
-                <label for="fname">name</label><br>
-                <input type="text" id="name" name="name" ><br>
-                <input type="submit" value="Submit">
-            </form>
-        </div>
-    </body>
+<head>
+    <meta charset='utf-8'>
+    <title>Inegleit v0</title>
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <script src='https://d3js.org/d3.v5.min.js'></script>
+</head>
+<body>
+    <div class="boxContainer". style="display: inline-block">
+        <div class="card" id="pile"></div>
+        <div class="card" id="turnedcard">
+            <div style="margin-top: 60px; margin-left: 10px">
+                <img src="images/uno_logo.png" width="130">
+            </div>
+        </div>    
+        <button type="button" style="margin-left:100px; margin-top: 50px;">INEGLEIT!!!</button>   
+    </div>
+    
+    <h2>Your cards</h3>
+
+    <div id="myhand"></div>
+
+    <script>
+    // move to config
+    var width = 150, 
+    height = 225;
+
+    var topcard = {x: 30, y: 30, color: "yellow", number: 1}
+
+    // test cards 
+    var cards = [{x: 100, y: 100, color: "red", number: 2}, 
+                 {x: 200, y: 110, color: "blue", number: 7},
+                 {x: 300, y: 120, color: "green", number: 0},
+                 {x: 400, y: 130, color: "black", number: "+4"},
+                 {x: 500, y: 140, color: "yellow", number: "+2"}
+                ]
+            
+    d3.select("#pile")
+        .style("background-color", topcard.color)
+        .append("p")
+        .attr("class", "cardtext")
+        .text( function(d) { return topcard.number })
+        .style("color", function (d) { 
+            if ( topcard.color == "yellow" ) { return "black" }
+            else { return "white" }
+        })
+
+    d3.select("#turnedcard")
+        .on("mouseover", function() {
+			d3.select(this)
+			.style("border-color", "grey")
+		})
+		.on("mouseout", function () {
+			d3.select(this)
+			.style("border-color", "black" )
+        })
+        .on("click", function(d) {
+            console.log("card picked up")
+        })
+    
+    d3.selectAll("button")
+        .on("click", function() {
+            console.log("clicked")
+        })
+
+    var hand_div= d3.select("#myhand")
+        .append("div")
+        .attr("id", "card")
+        .attr("width", "900px")
+        .attr("height", "300px");
+
+    hand_div.selectAll("cards")
+        .data(cards)
+        .enter()
+        .append("div")
+        .attr("class", "card")
+        .style("background-color", function (d) { return d.color })
+        .on("mouseover", function() {
+			d3.select(this)
+			.style("border-color", "grey")
+		})
+		.on("mouseout", function () {
+			d3.select(this)
+			.style("border-color", "black" )
+        })
+        .on("click", function (d) {
+			console.log(d.color, d.number, "clicked")
+		})
+        .append("p")
+        .attr("class", "cardtext")
+        .text( function(d) { return d.number })
+        .style("color", function (d) { 
+            if ( d.color == "yellow" ) { return "black" }
+            else { return "white" }
+        })
+        
+    </script>
+</body>
 </html>
