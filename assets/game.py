@@ -24,6 +24,7 @@ class Inegleit():
     """
 
     def __init__(self):
+        self.unique_id = 0 # counts up from 0 to assign unique ids
         self.n_players = 0
         self.players = []
         self.deck = Deck()
@@ -32,11 +33,18 @@ class Inegleit():
         self.forward = True
         self.active_player = 0
 
-    def add_player(self, name, index=0):
-        self.n_players += 1
-        p = Player(self, name, id)
+    def add_player(self, name):
+        """ 
+        creates player "name", returns the unique id
+        """
+        uid = self.unique_id
+        self.unique_id += 1
 
+        p = Player(self, name, uid)
         self.players.append(p)
+        self.n_players += 1
+        
+        return uid
 
     def remove_player(self, id):
         pass

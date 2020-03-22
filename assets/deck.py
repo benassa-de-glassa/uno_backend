@@ -54,10 +54,9 @@ class Deck():
                 self.N += 2
         # creates the black cards
         for i in range(4):
-            self.allcards.append(Card("black", 0)) # choose color
-            self.allcards.append(Card("black", 1)) # +4 card
+            self.allcards.append(Card("black", 0, self.N)) # choose color
+            self.allcards.append(Card("black", 1, self.N+1)) # +4 card
             self.N += 2
-        
 
         # make a copy of the deck
         self.current_cards = self.allcards.copy()
@@ -101,36 +100,38 @@ class Deck():
         self.pile.append(card)
 
 class Card():
-    def __init__(self, color, number, uid):
-        self.color = color
-        self.number = number
-        self.id = uid
+    def __init__(self, color, number, id):
+        self.attr = {
+            "color": color,
+            "number": number,
+            "id": id
+        }
 
     def playable(self, top_card):
         """
         tests if this card (self) can be placed upon top card on the staple
         """
 
-        if self.color == "black":
+        if self.attr["color"] == "black":
             return True
-        elif self.color == top_card.color or self.number == top_card.number:
+        elif self.attr["color"] == top_card.attr["color"] or self.attr["number"] == top_card.attr["number"]:
             return True
         return False
         
     def to_json(self):
-        return {'number': self.number, 'color': self.color, 'uid': self.id }
+        return self.attr
 
     def from_json(self, card):
-        self.color = card['color']
-        self.number = card['number']
+        self.attr["color"] = card["color"]
+        self.attr["number"] = card["number"]
     
     def inegleitable(self, top_card):
         """ 
         tests if the card can be inegleit
         """
-        if self.color == top_card.color and self.number == top_card.number:
+        if self.attr["color"] == top_card.attr["color"] and self.attr["number"] == top_card.attr["number"]:
             return True
         else: return False
 
     def __str__(self):
-        return self.color + str(self.number)
+        return self.attr["color"] + str(self.attr["number"])

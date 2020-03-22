@@ -2,26 +2,25 @@ class Player():
     """ 
     Class members:
 
-    game            : parent game
     name            : identifier
     uid             : identifier
     hand            : cards on the hand
 
     """
-    def __init__(self, game, name, uid=0):
+    def __init__(self, name, uid):
         """
         
         """
-        self.game = game
-        self.name = name
-        self.id = uid
-        
-        self.hand = []
+        self.attr = {
+            "name": name
+            "id": uid
+            "hand": []
+            "said_uno": False
+        }
 
-        self.said_uno = False
 
     def add_cards(self, cards):
-        self.hand.extend(cards)
+        self.attr["hand"].extend(cards)
         
     def lay_card(self, i):
         """

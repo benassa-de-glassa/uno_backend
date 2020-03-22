@@ -1,11 +1,14 @@
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+#from fastapi.staticfiles import StaticFiles
+#from fastapi.responses import HTMLResponse
 
-from routers import game, player
+from routers import game
+from assets.game import Inegleit
 
-global game_object
+global inegleit
+inegleit = Inegleit()
+
 app = FastAPI()
 
 origins = [
@@ -24,14 +27,15 @@ app.include_router(
     game.router,
     prefix='/game')
 
+"""
 app.include_router(
     player.router,
     prefix='/player')
 
-# from assets.game import Inegleit
-# @app.on_event('startup')
-# def start_game():
-#     game_object = Inegleit()
-#     print(game_object)
 
-app.mount('/', StaticFiles(directory='static', html=True), name='static')
+@app.on_event('startup')
+def start_game():
+    game_object = Inegleit()
+    print(game_object)
+
+"""
