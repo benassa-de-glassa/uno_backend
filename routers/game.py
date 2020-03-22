@@ -17,7 +17,6 @@ def initialize_game():
 @router.post('/add_player')
 def add_player(player_name: str):
     uid = inegleit.add_player(player_name)
-    print(player_name, uid)
     return { "name": player_name, "id": uid}
 
 @router.get('/start_game')
@@ -32,14 +31,23 @@ def deal_cards(player_id: int, n_cards: int):
     """
     Teilt karten aus dem Deck an Spieler aus
     """
-    pass
+    cards = inegleit.deal_cards(player_id, n_cards)
+    return [card for card in cards]
+
+@router.post('/top_card')
+def top_card():
+    """
+    Get the top card on the pile
+    """
+    tc = inegleit.top_card()
+    return tc
 
 @router.get('/turn')
 def whose_turn():
     """
     gibt die ID des Spielers zurück der an der Reihe ist
     """
-    pass
+    return inegleit.get_active_player_id()
 
 @router.post('/play_card')
 def play_card(player_id: int, card_id: int):
@@ -58,21 +66,13 @@ def add_player(player_name: str):
     pass
 
 @router.post('/remove_player')
-def remove_player(player_name: str):
+def remove_player(player_id: int):
     """
     Entfernt einen Spieler aus dem Spiel
     """
     pass
 
 @router.get('/cards')
-def karten(player_id:int):
-    cards = [
-        {'id': 1, 'color': 'green', 'number': 12},
-        {'id': 2, 'color': 'red', 'number': 5},
-        {'id': 3, 'color': 'blue', 'number': 10}
-    ]
-    try:
-        cards.pop(player_id)
-    except:
-        print(player_id)
-    return cards
+def cards(player_id: int):
+    return inegleit.get_cards(player_id)
+    

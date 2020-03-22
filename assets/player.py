@@ -12,9 +12,9 @@ class Player():
         
         """
         self.attr = {
-            "name": name
-            "id": uid
-            "hand": []
+            "name": name,
+            "id": uid,
+            "hand": [],
             "said_uno": False
         }
 
