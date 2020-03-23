@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, WebSocket
 import os
 
 from assets.game import Inegleit
@@ -33,13 +33,13 @@ def deal_cards(player_id: int, n_cards: int):
     cards = inegleit.deal_cards(player_id, n_cards)
     return [card for card in cards]
 
-@router.post('/top_card')
-def top_card():
-    """
-    Get the top card on the pile
-    """
-    tc = inegleit.top_card()
-    return tc
+# @router.post('/top_card')
+# def top_card():
+#     """
+#     Get the top card on the pile
+#     """
+#     tc = inegleit.top_card()
+#     return tc
 
 @router.get('/turn')
 def whose_turn():
@@ -67,3 +67,10 @@ def remove_player(player_id: int):
 def cards(player_id: int):
     return inegleit.get_cards(player_id)
     
+@router.websocket('/top_card')
+async def top_card(websocket: WebSocket):
+
+    await websocket.accept()
+    while True:
+        tc = inegleit.top_card()
+        await websocket.send_text(f"Message text was {tc}")
