@@ -49,14 +49,16 @@ class Deck():
             self.N += 1
             # add two of each kind
             for i in range(12):
-                self.allcards.append(Card(color, i+1, self.N))
+                self.allcards.append(Card(color, i, self.N))
                 self.allcards.append(Card(color, i+1, self.N+1))
                 self.N += 2
         # creates the black cards
-        for i in range(4):
+        for i in range(4): 
             self.allcards.append(Card("black", 0, self.N)) # choose color
-            self.allcards.append(Card("black", 1, self.N+1)) # +4 card
-            self.N += 2
+            self.N += 1
+        for i in range(4):
+            self.allcards.append(Card("black", 1, self.N)) # +4 card
+            self.N += 1
 
         # make a copy of the deck
         self.current_cards = self.allcards.copy()
@@ -136,4 +138,4 @@ class Card():
         else: return False
 
     def __str__(self):
-        return self.attr["color"] + str(self.attr["number"])
+        return self.attr["color"] + self.attr["number"]

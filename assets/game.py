@@ -5,6 +5,8 @@ from .deck import Deck
 
 import json
 
+DEBUG = True
+
 class Inegleit():
     """
     class members:
@@ -47,6 +49,9 @@ class Inegleit():
         self.players[uid] = p
         self.n_players += 1
         self.order.append(uid)
+
+        if DEBUG:
+            print("Added player: {} [{}]".format(name, uid))
         
         return uid
     
@@ -58,10 +63,15 @@ class Inegleit():
         cards = self.deck.deal_cards(n)
         # adds them to the hand of the player with id=uid
         self.players[uid].add_cards(cards)
+
+        if DEBUG:
+            print("Deal {} cards to player {} [{}]".format(n, self.players[uid].attr["name"], uid))
         
         return [card.attr for card in cards]
 
     def start_game(self):
+        if DEBUG:
+            print("Started game")
         self.deck.place_starting_card()
 
     def next_player(self, n=1):
@@ -78,44 +88,62 @@ class Inegleit():
     def get_cards(self, pid):
         return [ card.attr for card in self.players[pid].attr["hand"] ]
 
-    def event_play_card(self, player_index, card):
+    def event_play_card(self, player_id, card_id):
         """ 
         event triggered by the player
+        
         """
+        card = self.deck.get_card(card_id)
         top_card = self.deck.get_top_card()
 
-        if player_index != self.active_player:
+        player = self.players[player_id]
+
+        if DEBUG:
+            print("player active:", player_id == self.active_player)
+
+        if player_id != self.active_player:
             # checks if the card can be inegleit
             if card.inegleitable(top_card):
                 # if the card can be inegleit make the player the active player
                 # and go to the next player
                 self.deck.play_card(card)
-                self.active_player = player_index
+                self.active_player = player_id
                 self.next_player()
-            else: pass # TODO: some kind of error message
+                return [True, "inegleit"]
+            else: 
+                return [False, "not possible to inegleit"]
         
-        if player_index == self.active_player:
-            if card.playable(top_card):
+        if player_id == self.active_player:
+            if not card.playable(top_card):
+                return [False, "card not playable"]
+            
+            else:
                 self.deck.play_card(card)
                 
+                msg = ""
+
                 # handle black cards
-                if card.color == "black":
-                    if card.number == 0: # choose color
-                        pass
-                    if card.number == 1: # +4 and choose color
-                        pass
+                if card.attr["color"] == "black":
+                    if card.attr["number"] == 0: # choose color
+                        msg = "choose color"
+                    if card.attr["number"] == 1: # +4 and choose color
+                        msg = "choose color, +4 for the next player"
             
                 # handle colored cards
-                elif card.number == 10: # reverse direction
+                elif card.attr["number"] == 10: # reverse direction
                     self.forward = not self.forward
-                elif card.number == 11: # skip player
+                    msg = "reverse direction"
+                elif card.attr["number"] == 11: # skip player
                     self.next_player() # skips this player
-                elif card.number == 12: # +2
-                    pass
+                    msg = "next player skipped"
+                elif card.attr["number"] == 12: # +2
+                    msg = "+2 for the next player"
 
+                player.remove_card(card)
                 self.next_player()
+                return [True, msg]
 
-            else: pass # TODO: error message
+            
 
     def event_pickup_card(self, player, n=1):
         cards = self.deck.deal_cards(n) # list of length n
