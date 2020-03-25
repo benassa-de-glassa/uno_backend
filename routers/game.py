@@ -71,11 +71,21 @@ def cards(player_id: int):
     return inegleit.get_cards(player_id)
 
 @router.post('/choose_color')
-def choose_color(color: str):
+def choose_color(player_id:int, color: str):
     """
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    inegleit.choose_color(color)
+    inegleit.event_choose_color(player_id, color)
     return 200
+    
+@router.post('/pickup_card')
+def pickup_card(player_id: int):
+    """
+    gibt zurück ob eine zu spielende Karte erlaubt ist
+    und spielt diese im backend
+    """
+    return inegleit.event_pickup_card(player_id)
+    
+    
     

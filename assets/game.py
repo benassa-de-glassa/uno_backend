@@ -97,8 +97,6 @@ class Inegleit():
             if DEBUG:
                 print("Started game")
 
-        
-
     def next_player(self):
         self.penalty["own"] = self.penalty["next"]
         self.penalty["next"] = 0
@@ -290,14 +288,14 @@ class Inegleit():
         if player_id != self.get_active_player_id():
             return [False, "not your turn"]
         if not self.penalty["own"]:
-            return [False, "no more punishment required"]
+            return self.event_cant_play(player_id)
 
         card = self.deck.deal_cards(1) # returns a list of length 1
         self.players[player_id].add_cards(card)
         self.players[player_id].said_uno = False
 
         self.penalty["own"] -= 1
-        return [True, "take {} more".format(self.penalty["own"])]
+        return [True, "{}, take {} more".format(card, self.penalty["own"])]
         
     def event_uno(self, player):
         if len(player.hand) == 1:
