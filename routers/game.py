@@ -5,18 +5,20 @@ from assets.game import Inegleit
 
 router = APIRouter()
 
+# main game object
 inegleit = Inegleit()
-
-game_file = 'uno.json'
-
-@router.get('/initialize_game')
-def initialize_game():    
-    pass
     
 @router.post('/add_player')
 def add_player(player_name: str):
     uid = inegleit.add_player(player_name)
     return { "name": player_name, "id": uid}
+
+@router.post('/remove_player')
+def remove_player(player_id: int):
+    """
+    Entfernt einen Spieler aus dem Spiel
+    """
+    pass
 
 @router.post('/start_game')
 def start_game():
@@ -38,14 +40,14 @@ def top_card():
     """
     Get the top card on the pile
     """
-    return inegleit.top_card()
+    return inegleit.get_top_card()
 
-@router.get('/turn')
-def whose_turn():
+@router.get('/active_player')
+def active_player():
     """
     gibt die ID des Spielers zurück der an der Reihe ist
     """
-    return inegleit.get_active_player_id()
+    return inegleit.get_active_player()
 
 @router.post('/play_card')
 def play_card(player_id: int, card_id: int):
@@ -53,17 +55,27 @@ def play_card(player_id: int, card_id: int):
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    playable = inegleit.event_play_card(player_id, card_id)
-    print("playable", playable)
+    return inegleit.event_play_card(player_id, card_id)
+    
 
-@router.post('/remove_player')
-def remove_player(player_id: int):
+@router.post('/play_black_card')
+def play_black_card(player_id: int, card_id: int):
     """
-    Entfernt einen Spieler aus dem Spiel
+    gibt zurück ob eine zu spielende Karte erlaubt ist
+    und spielt diese im backend
     """
-    pass
+    return inegleit.event_play_black_card(player_id, card_id)
 
 @router.get('/cards')
 def cards(player_id: int):
     return inegleit.get_cards(player_id)
+
+@router.post('/choose_color')
+def choose_color(color: str):
+    """
+    gibt zurück ob eine zu spielende Karte erlaubt ist
+    und spielt diese im backend
+    """
+    inegleit.choose_color(color)
+    return 200
     
