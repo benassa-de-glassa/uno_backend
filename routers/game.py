@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, WebSocket
 import os
 
 from assets.game import Inegleit
@@ -89,3 +89,10 @@ def pickup_card(player_id: int):
     
     
     
+@router.websocket('/top_card')
+async def top_card(websocket: WebSocket):
+
+    await websocket.accept()
+    while True:
+        tc = inegleit.top_card()
+        await websocket.send_text(f"Message text was {tc}")
