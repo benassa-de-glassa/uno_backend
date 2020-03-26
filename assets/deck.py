@@ -21,7 +21,9 @@ class Deck():
                       ## TODO: handle that the card is removed from the players hand
 
     """
-    def __init__(self):
+    def __init__(self, seed=None):
+        if seed:
+            random.seed(seed)
         self.N = 0 # anzahl karten
         self.allcards = [] # verdeckter stapel
         self.pile = [] # offener stapel
@@ -49,14 +51,16 @@ class Deck():
             self.N += 1
             # add two of each kind
             for i in range(12):
-                self.allcards.append(Card(color, i+1, self.N))
+                self.allcards.append(Card(color, i, self.N))
                 self.allcards.append(Card(color, i+1, self.N+1))
                 self.N += 2
         # creates the black cards
-        for i in range(4):
+        for i in range(4): 
             self.allcards.append(Card("black", 0, self.N)) # choose color
-            self.allcards.append(Card("black", 1, self.N+1)) # +4 card
-            self.N += 2
+            self.N += 1
+        for i in range(4):
+            self.allcards.append(Card("black", 1, self.N)) # +4 card
+            self.N += 1
 
         # make a copy of the deck
         self.current_cards = self.allcards.copy()
@@ -73,7 +77,7 @@ class Deck():
     def shuffle_cards(self):
         random.shuffle(self.current_cards)
 
-    def get_top_card(self):
+    def top_card(self):
         return self.pile[-1]
 
     def deal_cards(self, n):
@@ -136,4 +140,20 @@ class Card():
         else: return False
 
     def __str__(self):
-        return self.attr["color"] + str(self.attr["number"])
+        if self.attr["color"] == "black":
+            if self.attr["number"] == 0:
+                text = "?"
+            else:
+                text = "+4"
+        elif self.attr["number"] == 10:
+            text = "<=>"
+        elif self.attr["number"] == 11:
+            text = "(/)"
+        elif self.attr["number"] == 12:
+            text = "+2"
+        else:
+            text = str(self.attr["number"])
+
+        
+
+        return self.attr["color"] + " " + text

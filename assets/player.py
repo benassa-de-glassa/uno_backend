@@ -17,26 +17,19 @@ class Player():
             "hand": [],
             "said_uno": False
         }
-
-
+        
     def add_cards(self, cards):
         self.attr["hand"].extend(cards)
+
+    def has_card(self, card):
+        return card in self.attr["hand"]
         
-    def lay_card(self, i):
-        """
-        i : index of the card in self.cards. 
-        needs to tests if the card can be played and pops it if it can
-        """
-
+    def remove_card(self, card):
+        self.attr["hand"].remove(card)
     
-    def shout_uno(self):
-        pass
-      
-    def to_json(self):
-        return {
-            'name': self.name
-            }
+    def toggle_uno(self):
+        self.attr["said_uno"] = not self.attr["said_uno"]
 
-    def from_json(self, player):
-        self.name = player['name']
+    def __str__(self):
+        return "{} [{}]".format(self.attr["name"], self.attr["id"])
 
