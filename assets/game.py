@@ -55,6 +55,8 @@ class Inegleit():
             "type": 0
         }
 
+        self.card_picked_up = False
+
     def add_player(self, name):
         """ 
         creates player "name", returns the unique id
@@ -99,6 +101,9 @@ class Inegleit():
                 print("Started game")
 
     def next_player(self):
+        if not self.get_active_player().attr["hand"]: # player has no cards left
+            self.player_finished()
+
         self.penalty["own"] = self.penalty["next"]
         self.penalty["next"] = 0
         i = (self.active_index + self.forward) % self.n_players
@@ -109,6 +114,8 @@ class Inegleit():
                 self.get_active_player().attr["name"],
                 self.penalty["own"]
             ))
+            
+        return (True, "{}'s turn".format(self.get_active_player.attr["name"]))
 
     def get_active_player_id(self):
         return self.order[self.active_index]
@@ -276,50 +283,51 @@ class Inegleit():
         self.can_choose_color = False
         self.next_player()
 
-        return [True, response]
+        return (True, response)
 
     def event_cant_play(self, player_id):
-        # pick up a card
-        if player_id != self.get_active_player_id():
-            return [False, "not your turn"]
-        if self.penalty["own"]:
-            return [False, "pick up {} cards first". format(self.penalty["own"])]
-        card = self.deck.deal_cards(1) # returns a list of length 1
-        self.players[player_id].add_cards(card)
-        self.players[player_id].said_uno = False
         self.next_player()
-
-        return [True, "next player"]
     
     def event_pickup_card(self, player_id):
         if player_id != self.get_active_player_id():
             return [False, "not your turn"]
-        if not self.penalty["own"]:
-            return self.event_cant_play(player_id)
+
+        response = "picked up card"
+        if self.penalty["own"]:
+            self.penalty["own"] -= 1
+            response += ", take {} more".format(self.penalty["own"])
+        elif not self.card_picked_up:
+            self.card_picked_up = True
+        else:
+            return (False, "you already have enough cards")
 
         card = self.deck.deal_cards(1) # returns a list of length 1
         self.players[player_id].add_cards(card)
-        self.players[player_id].said_uno = False
+        self.players[player_id].attr["said_uno"] = False
 
-        self.penalty["own"] -= 1
-        return [True, "{}, take {} more".format(card, self.penalty["own"])]
+        if self.penalty["type"] == "uno" and not self.penalty["own"]:
+            # if the player takes cards for not saying uno, move to the next player
+            # after picking up two instead of letting him play
+            self.penalty["type"] = 0
+            self.next_player()
+
+        return (True, response)
         
     def event_uno(self, player_id):
         player = self.players[player_id]
-        if player_id != self.get_active_player_id():
-            return [False, "wait for your turn"]
         if len(player.attr["hand"]) == 1:
             player.attr["said_uno"] = True
-            return [True, "UNO"]
-
+            return (True, "UNO")
         else: 
-            return [False, "you have too many cards"]
+            return (False, "you have too many cards")
 
-    def event_player_finished(self, player):
-        if player.said_uno:
-            pass # congratulate him
+    def player_finished(self, player):
+        if player.attr["said_uno"]:
+            return (True, "{} won. Congratulations!".format(player.attr["name"]))
         else:
-            pass # force him to pick up two cards and laugh at him
+            self.penalty["own"] = 2
+            self.penalty["type"] = "uno"
+            return (False, "{} didn't say uno, pick up two cards!".format(player.attr["name"]))
       
     def to_json(self, filename):
         game = {
