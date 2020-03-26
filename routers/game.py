@@ -90,7 +90,7 @@ def pickup_card(player_id: int):
     
     
 @router.websocket('/top_card')
-async def top_card(websocket: WebSocket):
+async def ws_top_card(websocket: WebSocket):
 
     await websocket.accept()
     while True:
