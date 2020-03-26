@@ -87,7 +87,9 @@ def pickup_card(player_id: int):
     """
     return inegleit.event_pickup_card(player_id)
     
-    
+@router.post('/reset_game')
+def reset_game():
+    return inegleit.reset_game()
     
 @router.websocket('/top_card')
 async def ws_top_card(websocket: WebSocket):
