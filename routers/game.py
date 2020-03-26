@@ -6,7 +6,7 @@ from assets.game import Inegleit
 router = APIRouter()
 
 # main game object
-inegleit = Inegleit()
+inegleit = Inegleit(1)
     
 @router.post('/add_player')
 def add_player(player_name: str):
@@ -76,8 +76,8 @@ def choose_color(player_id:int, color: str):
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    inegleit.event_choose_color(player_id, color)
-    return 200
+    return inegleit.event_choose_color(player_id, color)
+
     
 @router.post('/pickup_card')
 def pickup_card(player_id: int):
@@ -86,11 +86,15 @@ def pickup_card(player_id: int):
     und spielt diese im backend
     """
     return inegleit.event_pickup_card(player_id)
+
+@router.post('/say_uno')
+def say_uno(player_id: int):
+    return inegleit.event_say_uno(player_id)
     
     
     
 @router.websocket('/top_card')
-async def top_card(websocket: WebSocket):
+async def ws_top_card(websocket: WebSocket):
 
     await websocket.accept()
     while True:

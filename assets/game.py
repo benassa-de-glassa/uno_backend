@@ -27,6 +27,7 @@ class Inegleit():
     """
 
     def __init__(self, seed=None):
+        self.seed = seed
         self.game_started = False
 
         self.unique_id = 0 # counts up from 0 to assign unique ids
@@ -120,8 +121,8 @@ class Inegleit():
     def get_top_card(self):
         return self.deck.top_card().attr
 
-    def get_cards(self, pid):
-        return [ card.attr for card in self.players[pid].attr["hand"] ]
+    def get_cards(self, player_id):
+        return [ card.attr for card in self.players[player_id].attr["hand"] ]
     
     def event_play_card(self, player_id, card_id):
         """ 
@@ -260,16 +261,22 @@ class Inegleit():
         return [True, response]
     
     def event_choose_color(self, player_id, color):
-        assert self.can_choose_color == True
+        if not self.can_choose_color:
+            return [False, "not allowed to choose color"]
+        if not player_id == self.get_active_player_id():
+            return [False, "not your turn"]
         assert color in ["red", "green", "blue", "yellow"]
-        assert player_id == self.get_active_player_id()
+
+        response = "{} chose color {}".format(player_id, color)
 
         if DEBUG:
-            print("{} chose color {}".format(player_id, color))
+            print(response)
 
         self.chosen_color = color
         self.can_choose_color = False
         self.next_player()
+
+        return [True, response]
 
     def event_cant_play(self, player_id):
         # pick up a card
@@ -297,10 +304,16 @@ class Inegleit():
         self.penalty["own"] -= 1
         return [True, "{}, take {} more".format(card, self.penalty["own"])]
         
-    def event_uno(self, player):
-        if len(player.hand) == 1:
-            player.said_uno == True
-        else: pass # TODO: tell the player he's an idiot
+    def event_uno(self, player_id):
+        player = self.players[player_id]
+        if player_id != self.get_active_player_id():
+            return [False, "wait for your turn"]
+        if len(player.attr["hand"]) == 1:
+            player.attr["said_uno"] = True
+            return [True, "UNO"]
+
+        else: 
+            return [False, "you have too many cards"]
 
     def event_player_finished(self, player):
         if player.said_uno:
@@ -325,3 +338,6 @@ class Inegleit():
             self.forward = game['direction']
             self.players = [Player(self, player['name']) for player in game['players']]
             self.deck = Deck().from_json(game['deck'])
+
+    def reset_game(self):
+        self.__init__(seed=self.seed)
