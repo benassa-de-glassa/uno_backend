@@ -47,7 +47,7 @@ def active_player():
     """
     gibt die ID des Spielers zurück der an der Reihe ist
     """
-    return inegleit.get_active_player()
+    return inegleit.get_active_player().attr
 
 @router.post('/play_card')
 def play_card(player_id: int, card_id: int):
@@ -95,7 +95,7 @@ def cant_play(player_id: int):
 
 @router.post('/say_uno')
 def say_uno(player_id: int):
-    return inegleit.event_say_uno(player_id)
+    return inegleit.event_uno(player_id)
     
 @router.websocket('/top_card')
 async def ws_top_card(websocket: WebSocket):
@@ -104,3 +104,7 @@ async def ws_top_card(websocket: WebSocket):
     while True:
         tc = inegleit.top_card()
         await websocket.send_text(f"Message text was {tc}")
+
+@router.post('/reset_game')
+def reset_game():
+    return inegleit.reset_game()

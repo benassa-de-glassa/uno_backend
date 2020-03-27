@@ -61,34 +61,43 @@ class Inegleit():
         """ 
         creates player "name", returns the unique id
         """
-        uid = self.unique_id
+        player_id = self.unique_id
         self.unique_id += 1
 
-        p = Player(name, uid)
-        self.players[uid] = p
+        p = Player(name, player_id)
+        self.players[player_id] = p
         self.n_players += 1
-        self.order.append(uid)
+        self.order.append(player_id)
 
         if DEBUG:
-            print("Added player: {} [{}]".format(name, uid))
+            print("Added player: {} [{}]".format(name, player_id))
         
-        return uid
+        return player_id
     
-    def remove_player(self, uid):
-        if DEBUG:
-            name = self.players[uid].attr["name"]
-            print("Removed player: {} [{}]".format(name, uid))
+    def remove_player(self, player_id):
+        player = self.players[player_id]
+        response = "Removed player: {}".format(player) 
         
-        del self.players[uid]
+        del self.players[player_id]
+        self.order.remove(player_id)
+        self.n_players -= 1
 
-    def deal_cards(self, uid, n):
+        # if the last player in self.order is active, decrease the active index by one
+        self.active_index -= (self.active_index == self.n_players)
+
+        if DEBUG:
+            print(response)
+
+        return (True, response)
+
+    def deal_cards(self, player_id, n):
         # lifts the n top cards of the deck
         cards = self.deck.deal_cards(n)
-        # adds them to the hand of the player with id=uid
-        self.players[uid].add_cards(cards)
+        # adds them to the hand of the player with id=player_id
+        self.players[player_id].add_cards(cards)
 
         if DEBUG:
-            print("Dealt {} cards to player {} [{}]".format(n, self.players[uid].attr["name"], uid))
+            print("Dealt {} cards to player {} [{}]".format(n, self.players[player_id].attr["name"], player_id))
         
         return [card.attr for card in cards]
 
@@ -98,14 +107,16 @@ class Inegleit():
             self.game_started = True
 
             if DEBUG:
-                print("Started game")
+                print("Started game. {}'s turn".format(self.get_active_player()))
 
     def next_player(self):
-        if not self.get_active_player().attr["hand"]: # player has no cards left
-            self.player_finished()
+        # resets the indicators
+        self.card_picked_up = False
 
+        # activates the penalty for the next player e.g. after playing a +2 card
         self.penalty["own"] = self.penalty["next"]
         self.penalty["next"] = 0
+
         i = (self.active_index + self.forward) % self.n_players
         self.active_index = i
 
@@ -114,8 +125,8 @@ class Inegleit():
                 self.get_active_player().attr["name"],
                 self.penalty["own"]
             ))
-            
-        return (True, "{}'s turn".format(self.get_active_player.attr["name"]))
+
+        return (True, "{}'s turn".format(self.get_active_player().attr["name"]))
 
     def get_active_player_id(self):
         return self.order[self.active_index]
@@ -130,30 +141,26 @@ class Inegleit():
 
     def get_cards(self, player_id):
         return [ card.attr for card in self.players[player_id].attr["hand"] ]
-    
+
+    def player_is_active(self, player_id):
+        return self.get_active_player_id() == player_id
+
     def event_play_card(self, player_id, card_id):
         """ 
-        check if the card can be played and play it if it can
-        returns [bool, "response"]
+        Handles the request from [player_id] to play [card_id].
 
+        Returns ( card_played(bool), response(str) )
         """
         card = self.deck.get_card(card_id)
         player = self.players[player_id]
+        top_card = self.deck.top_card()
 
         # asserts that the player actually has the card
         if not player.has_card(card):
             return [False, "player does not have that card"]
 
-        top_card = self.deck.top_card()
-
         response = "" 
-
-        active_id = self.get_active_player_id()
-
-        if DEBUG:
-            print("player active:", player_id == active_id)
-
-        if player_id != active_id:
+        if not self.player_is_active(player_id):
             # checks if the card can be inegleit
             if card.inegleitable(top_card):
                 # if the card can be inegleit make the player the active player
@@ -162,9 +169,9 @@ class Inegleit():
                 response = "inegleit!"
             else: 
                 # remove requests to 'inegleit' a card
-                return [False, "not your turn, not possible to inegleit"]
+                return (False, "not your turn, not possible to inegleit")
 
-        if player_id == active_id:
+        else: # player is active
             # checks if the card can be played, argument chosen_color is only
             # relevant if a black card lies on top
             if top_card.attr["color"] == "black":
@@ -210,6 +217,13 @@ class Inegleit():
 
         self.deck.play_card(card)
         player.remove_card(card)
+
+        if DEBUG:
+            print("{} played {}".format(player, card))
+
+        if not player.attr["hand"]: # player has no cards left
+            return self.player_finished()
+
         self.next_player()
         
         return [True, response]
@@ -262,6 +276,9 @@ class Inegleit():
         self.deck.play_card(card)
         player.remove_card(card)
 
+        if not player.attr["hand"]: # player has no cards left
+            return self.player_finished()
+
         if DEBUG:
             print("{} played {}".format(player, card))
         
@@ -272,9 +289,8 @@ class Inegleit():
             return [False, "not allowed to choose color"]
         if not player_id == self.get_active_player_id():
             return [False, "not your turn"]
-        assert color in ["red", "green", "blue", "yellow"]
 
-        response = "{} chose color {}".format(player_id, color)
+        response = "{} chose color {}".format(self.players[player_id], color)
 
         if DEBUG:
             print(response)
@@ -286,13 +302,21 @@ class Inegleit():
         return (True, response)
 
     def event_cant_play(self, player_id):
-        self.next_player()
+        return self.next_player()
     
     def event_pickup_card(self, player_id):
+        """ 
+        returns (bool1, bool2, str)
+
+        bool1   : card picked up
+        bool2   : true if the card was picked up because of a penalty
+        str     : response
+        """
         if player_id != self.get_active_player_id():
             return [False, "not your turn"]
 
         response = "picked up card"
+        
         if self.penalty["own"]:
             self.penalty["own"] -= 1
             response += ", take {} more".format(self.penalty["own"])
@@ -311,7 +335,10 @@ class Inegleit():
             self.penalty["type"] = 0
             self.next_player()
 
-        return (True, response)
+        if DEBUG:
+            print("{} picks up {}".format(self.players[player_id], card[0]))
+
+        return (True, bool(self.penalty["own"]), response)
         
     def event_uno(self, player_id):
         player = self.players[player_id]
@@ -319,16 +346,20 @@ class Inegleit():
             player.attr["said_uno"] = True
             return (True, "UNO")
         else: 
-            return (False, "you have too many cards")
+            return (False, "you have the wrong number of cards ({})".format(len(player.attr["hand"])))
 
-    def player_finished(self, player):
+    def player_finished(self):
+        player = self.get_active_player()
         if player.attr["said_uno"]:
             return (True, "{} won. Congratulations!".format(player.attr["name"]))
         else:
             self.penalty["own"] = 2
             self.penalty["type"] = "uno"
-            return (False, "{} didn't say uno, pick up two cards!".format(player.attr["name"]))
-      
+            return (False, "{} didn't say uno, pick up two cards!".format(player.attr["name"]))    
+    
+    def reset_game(self):
+        self.__init__(seed=self.seed)
+
     def to_json(self, filename):
         game = {
             'game': 'uno',
@@ -346,6 +377,3 @@ class Inegleit():
             self.forward = game['direction']
             self.players = [Player(self, player['name']) for player in game['players']]
             self.deck = Deck().from_json(game['deck'])
-
-    def reset_game(self):
-        self.__init__(seed=self.seed)
