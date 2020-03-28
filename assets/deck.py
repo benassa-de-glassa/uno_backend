@@ -71,6 +71,10 @@ class Deck():
         # places the starting card:
         self.pile.append(self.current_cards.pop())
 
+        # avoids having a black starting card
+        if self.top_card().attr["color"] == "black":
+            self.place_starting_card()
+
     def get_card(self, i):
         return self.allcards[i]
     

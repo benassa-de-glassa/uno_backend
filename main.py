@@ -4,10 +4,10 @@ from fastapi import FastAPI
 #from fastapi.responses import HTMLResponse
 
 from routers import game
-from assets.game import Inegleit
+#from assets.game import Inegleit
 
-global inegleit
-inegleit = Inegleit()
+#global inegleit
+#inegleit = Inegleit()
 
 app = FastAPI()
 

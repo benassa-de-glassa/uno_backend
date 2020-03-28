@@ -94,8 +94,10 @@ class Inegleit():
             self.deck.place_starting_card()
             self.game_started = True
 
-            if DEBUG:
-                print("Started game")
+        if DEBUG:
+            print("Started game")
+
+        return (True, str(self.deck.top_card()))
 
     def next_player(self):
         self.penalty["own"] = self.penalty["next"]
