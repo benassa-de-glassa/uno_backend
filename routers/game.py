@@ -7,7 +7,7 @@ from assets.game import Inegleit
 router = APIRouter()
 
 # main game object
-inegleit = Inegleit()
+inegleit = Inegleit(1)
     
 @router.post('/add_player')
 def add_player(player_name: str):
@@ -48,7 +48,7 @@ def active_player():
     """
     gibt die ID des Spielers zurück der an der Reihe ist
     """
-    return inegleit.get_active_player()
+    return inegleit.get_active_player().attr
 
 @router.post('/play_card')
 def play_card(player_id: int, card_id: int):
@@ -58,7 +58,6 @@ def play_card(player_id: int, card_id: int):
     """
     return inegleit.event_play_card(player_id, card_id)
     
-
 @router.post('/play_black_card')
 def play_black_card(player_id: int, card_id: int):
     """
@@ -77,9 +76,8 @@ def choose_color(player_id:int, color: str):
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    inegleit.event_choose_color(player_id, color)
-    return 200
-    
+    return inegleit.event_choose_color(player_id, color)
+
 @router.post('/pickup_card')
 def pickup_card(player_id: int):
     """
@@ -87,8 +85,19 @@ def pickup_card(player_id: int):
     und spielt diese im backend
     """
     return inegleit.event_pickup_card(player_id)
-    
+
+@router.post('/cant_play')
+def cant_play(player_id: int):
+    """
+    gibt zurück ob eine zu spielende Karte erlaubt ist
+    und spielt diese im backend
+    """
+    return inegleit.event_cant_play(player_id)
+
+@router.post('/say_uno')
+def say_uno(player_id: int):
+    return inegleit.event_uno(player_id)
+
 @router.post('/reset_game')
 def reset_game():
     return inegleit.reset_game()
-    
