@@ -33,3 +33,10 @@ class Player():
     def __str__(self):
         return "{} [{}]".format(self.attr["name"], self.attr["id"])
 
+    def to_json(self):
+        return {
+            "name": self.attr["name"], 
+            "id": self.attr["id"],
+            "numberOfCards": len(self.attr["hand"]), 
+            "saidUno": self.attr["said_uno"]
+            }

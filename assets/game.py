@@ -111,7 +111,6 @@ class Inegleit():
 
         return (True, str(self.deck.top_card()))
 
-
     def next_player(self):
         # resets the indicators
         self.card_picked_up = False
@@ -139,11 +138,11 @@ class Inegleit():
 
     def get_active_player(self):
         if not self.n_players:
-            return [{"id": -1, "name": "no players yet"}]
+            return Player(None, -1)
         return self.players[self.get_active_player_id()]
     
     def get_all_players(self):
-        return [self.players[key].attr for key in self.players]
+        return [self.players[key].to_json() for key in self.players]
     
     def get_top_card(self):
         return self.deck.top_card().attr
@@ -169,6 +168,7 @@ class Inegleit():
             return [False, "player does not have that card"]
 
         response = "" 
+        reset_color = False # if the card is played ontop of a black card reset the chosen color to ""
         if not self.player_is_active(player_id):
             # checks if the card can be inegleit
             if card.inegleitable(top_card):
@@ -180,13 +180,15 @@ class Inegleit():
                 # remove requests to 'inegleit' a card
                 return (False, "not your turn, not possible to inegleit")
 
+         
         else: # player is active
             # checks if the card can be played, argument chosen_color is only
             # relevant if a black card lies on top
             if top_card.attr["color"] == "black":
                 if not card.attr["color"] == self.chosen_color:
                     return [False, "play color {}".format(self.chosen_color)]
-            
+                reset_color = True
+
             elif not card.playable(top_card):
                 # remove request to play a wrong card
                 return [False, "card not playable"] 
@@ -232,6 +234,8 @@ class Inegleit():
 
         if not player.attr["hand"]: # player has no cards left
             return self.player_finished()
+        if reset_color:
+            self.chosen_color = ""
 
         self.next_player()
         
