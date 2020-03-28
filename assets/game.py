@@ -326,7 +326,7 @@ class Inegleit():
         str     : response
         """
         if player_id != self.get_active_player_id():
-            return [False, "not your turn"]
+            return [False, False, "not your turn"]
 
         response = "picked up card"
         
@@ -336,7 +336,7 @@ class Inegleit():
         elif not self.card_picked_up:
             self.card_picked_up = True
         else:
-            return (False, "you already have enough cards")
+            return (False, False, "you already have enough cards")
 
         card = self.deck.deal_cards(1) # returns a list of length 1
         self.players[player_id].add_cards(card)
