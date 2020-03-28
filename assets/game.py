@@ -16,7 +16,7 @@ class Inegleit():
     deck (class)        : deck handling the cards in the deck as well as the pile of used cards
     forward (bool)      : True if the playing direction is forward, False otherwise
     order (list)        : list of player ids in order
-    active_index (int) : index of the player in order whos turn it is
+    active_index (int)  : index of the player in order whos turn it is
 
     methods:
 
@@ -72,7 +72,7 @@ class Inegleit():
         if DEBUG:
             print("Added player: {} [{}]".format(name, player_id))
         
-        return player_id
+        return p.attr
     
     def remove_player(self, player_id):
         player = self.players[player_id]
@@ -106,8 +106,11 @@ class Inegleit():
             self.deck.place_starting_card()
             self.game_started = True
 
-            if DEBUG:
-                print("Started game. {}'s turn".format(self.get_active_player()))
+        if DEBUG:
+            print("Started game. {}'s turn".format(self.get_active_player()))
+
+        return (True, str(self.deck.top_card()))
+
 
     def next_player(self):
         # resets the indicators
@@ -129,12 +132,18 @@ class Inegleit():
         return (True, "{}'s turn".format(self.get_active_player().attr["name"]))
 
     def get_active_player_id(self):
-        return self.order[self.active_index]
+        if self.order != []:
+            return self.order[self.active_index]
+        else:
+            return None
 
     def get_active_player(self):
         if not self.n_players:
             return [{"id": -1, "name": "no players yet"}]
         return self.players[self.get_active_player_id()]
+    
+    def get_all_players(self):
+        return [self.players[key].attr for key in self.players]
     
     def get_top_card(self):
         return self.deck.top_card().attr

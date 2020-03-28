@@ -71,6 +71,10 @@ class Deck():
         # places the starting card:
         self.pile.append(self.current_cards.pop())
 
+        # avoids having a black starting card
+        if self.top_card().attr["color"] == "black":
+            self.place_starting_card()
+
     def get_card(self, i):
         return self.allcards[i]
     
@@ -78,8 +82,10 @@ class Deck():
         random.shuffle(self.current_cards)
 
     def top_card(self):
-        return self.pile[-1]
-
+        if len(self.pile) > 0:
+            return self.pile[-1]
+        else:
+            return []
     def deal_cards(self, n):
         if n < self.N:
             cards = [self.current_cards.pop() for i in range(n)]
