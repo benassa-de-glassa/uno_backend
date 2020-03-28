@@ -48,17 +48,53 @@ app.add_websocket_route("/socket.io/", sio_asgi_app)
 background_task_started = False
 
 
-async def background_task():
-    while True:
-        await sio.sleep(1)
+@app.middleware('http')
+async def trigger_sio_event(request, call_next):
+    await sio.emit('top-card', 
+        {
+            'topCard': inegleit.get_top_card(),
+        }
+    )
 
-        await sio.emit('player-list', 
-            {
-                'playerList': inegleit.get_all_players(),
-                'turn': inegleit.get_active_player_id(),
-                'messages': [{"id": -1, "sender": "Hedwig und Storch", "text": "Viel Spass mit Inegleit Online!", "time": "" }],
-            }
-        )
+    await sio.emit('player-list', 
+        {
+            'playerList': inegleit.get_all_players(),
+            'turn': inegleit.get_active_player_id(),
+            'messages': [{
+                "id": -1, 
+                "sender": "Hedwig und Storch", 
+                "text": "Viel Spass mit Inegleit Online!", 
+                "time": "" 
+                }],
+        }
+    )
+    response = await call_next(request)
+    return response
+
+
+async def background_task():
+    pass
+    # while True:
+    #     await sio.sleep(5)
+
+    #     await sio.emit('top-card', 
+    #         {
+    #             'topCard': inegleit.get_top_card(),
+    #         }
+    #     )
+
+    #     await sio.emit('player-list', 
+    #         {
+    #             'playerList': inegleit.get_all_players(),
+    #             'turn': inegleit.get_active_player_id(),
+    #             'messages': [{
+    #                 "id": -1, 
+    #                 "sender": "Hedwig und Storch", 
+    #                 "text": "Viel Spass mit Inegleit Online!", 
+    #                 "time": "" 
+    #                 }],
+    #         }
+    #     )
 
 
 @sio.on('connect')
