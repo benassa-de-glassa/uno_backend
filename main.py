@@ -8,11 +8,12 @@ import uvicorn
 import socketio
 
 from routers import game
-#from assets.game import Inegleit
+# from assets.game import Inegleit
 
-#global inegleit
-#inegleit = Inegleit()
+# global inegleit
+# inegleit = Inegleit()
 
+from routers.game import inegleit
 
 origins = [
     "*",
@@ -55,35 +56,21 @@ app.add_websocket_route("/socket.io/", sio_asgi_app)
 background_task_started = False
 
 
-
 async def background_task():
     while True:
-        print('sending topcard and player dict')
-        await sio.sleep(10)
-        try: 
-            top_card = inegleit.get_top_card()
-            if top_card == []:
-                await sio.emit('top card', {'data': {'id': 9, 'number': 'test', 'color': 'red'}})
-            else:
-                await sio.emit('top card', {'data': inegleit.get_top_card()})
-            print('sending topcard')
-        except:
-            pass
-        try: 
-            player_list = inegleit.get_all_players()
-            if top_card == []:
-                await sio.emit('top card', {'data':[{'id': 1, 'name': 'test_player1'}, {'id': 2, 'name': 'test_player2'}]})
-            else:
-                await sio.emit('top card', {'data': inegleit.get_top_card()})
-            # await sio.emit('player dict', {'data': inegleit.get_all_players()})
-            print('sending player dict')
-        except:
-            pass
+        await sio.sleep(1)
+
+        await sio.emit('player-list', 
+            {
+                'playerList': inegleit.get_all_players(),
+                'turn': inegleit.get_active_player_id()
+            }
+        )
 
 
 @sio.on('connect')
 async def test_connect(sid, environ):
-    print('connect')
+    print('connect', sid)
 
     global background_task_started
     if not background_task_started:
