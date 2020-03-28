@@ -8,17 +8,12 @@ import uvicorn
 import socketio
 
 from routers import game
-# from assets.game import Inegleit
-
-# global inegleit
-# inegleit = Inegleit()
-
-from routers.game import inegleit
+#from routers.game import inegleit
+inegleit = game.inegleit
 
 origins = [
     "*",
 ]
-
 
 app = FastAPI(
     # title=config.PROJECT_NAME,
@@ -26,9 +21,6 @@ app = FastAPI(
     # version=config.PROJECT_VERSION,
     debug=True
 )
-
-
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -63,7 +55,8 @@ async def background_task():
         await sio.emit('player-list', 
             {
                 'playerList': inegleit.get_all_players(),
-                'turn': inegleit.get_active_player_id()
+                'turn': inegleit.get_active_player_id(),
+                'messages': [{"id": -1, "sender": "Hedwig und Storch", "text": "Viel Spass mit Inegleit Online!", "time": "" }],
             }
         )
 
