@@ -123,7 +123,7 @@ class Inegleit():
         return self.players[self.get_active_player_id()]
     
     def get_all_players(self):
-        return [self.players[key].attr for key in self.players]
+        return [self.players[key].to_json_sendable() for key in self.players]
     
     def get_top_card(self):
         return self.deck.top_card().attr
@@ -316,20 +316,20 @@ class Inegleit():
         else:
             pass # force him to pick up two cards and laugh at him
       
-    def to_json(self, filename):
-        game = {
-            'game': 'uno',
-            'direction': self.forward,
-            'players': [player.to_json() for player in self.players],
-            'deck': self.deck.to_json(), 
-        }
-        with open(filename, 'w') as outfile:
-            json.dump(game, outfile)
+    # def to_json(self, filename):
+    #     game = {
+    #         'game': 'uno',
+    #         'direction': self.forward,
+    #         'players': [player.to_json() for player in self.players],
+    #         'deck': self.deck.to_json(), 
+    #     }
+    #     with open(filename, 'w') as outfile:
+    #         json.dump(game, outfile)
 
-    def from_json(self, filename):
-        with open(filename, 'r') as infile:
-            game = json.load(infile)
+    # def from_json(self, filename):
+    #     with open(filename, 'r') as infile:
+    #         game = json.load(infile)
 
-            self.forward = game['direction']
-            self.players = [Player(self, player['name']) for player in game['players']]
-            self.deck = Deck().from_json(game['deck'])
+    #         self.forward = game['direction']
+    #         self.players = [Player(self, player['name']) for player in game['players']]
+    #         self.deck = Deck().from_json(game['deck'])
