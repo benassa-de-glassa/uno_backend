@@ -16,7 +16,7 @@ class Inegleit():
     deck (class)        : deck handling the cards in the deck as well as the pile of used cards
     forward (bool)      : True if the playing direction is forward, False otherwise
     order (list)        : list of player ids in order
-    active_index (int) : index of the player in order whos turn it is
+    active_index (int)  : index of the player in order whos turn it is
 
     methods:
 
@@ -112,7 +112,10 @@ class Inegleit():
             ))
 
     def get_active_player_id(self):
-        return self.order[self.active_index]
+        if self.order != []:
+            return self.order[self.active_index]
+        else:
+            return None
 
     def get_active_player(self):
         if not self.n_players:
@@ -120,7 +123,7 @@ class Inegleit():
         return self.players[self.get_active_player_id()]
     
     def get_all_players(self):
-        return self.players
+        return [self.players[key].attr for key in self.players]
     
     def get_top_card(self):
         return self.deck.top_card().attr
