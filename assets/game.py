@@ -69,7 +69,7 @@ class Inegleit():
         if DEBUG:
             print("Added player: {} [{}]".format(name, uid))
         
-        return uid
+        return p.attr
     
     def remove_player(self, uid):
         if DEBUG:
@@ -118,6 +118,9 @@ class Inegleit():
         if not self.n_players:
             return [{"id": -1, "name": "no players yet"}]
         return self.players[self.get_active_player_id()]
+    
+    def get_all_players(self):
+        return self.players
     
     def get_top_card(self):
         return self.deck.top_card().attr

@@ -82,8 +82,10 @@ class Deck():
         random.shuffle(self.current_cards)
 
     def top_card(self):
-        return self.pile[-1]
-
+        if len(self.pile) > 0:
+            return self.pile[-1]
+        else:
+            return []
     def deal_cards(self, n):
         if n < self.N:
             cards = [self.current_cards.pop() for i in range(n)]

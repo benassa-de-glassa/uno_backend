@@ -3,6 +3,7 @@ import os
 
 from assets.game import Inegleit
 
+
 router = APIRouter()
 
 # main game object
@@ -10,8 +11,8 @@ inegleit = Inegleit()
     
 @router.post('/add_player')
 def add_player(player_name: str):
-    uid = inegleit.add_player(player_name)
-    return { "name": player_name, "id": uid}
+    p = inegleit.add_player(player_name)
+    return p
 
 @router.post('/remove_player')
 def remove_player(player_id: int):
@@ -91,10 +92,3 @@ def pickup_card(player_id: int):
 def reset_game():
     return inegleit.reset_game()
     
-@router.websocket('/top_card')
-async def ws_top_card(websocket: WebSocket):
-
-    await websocket.accept()
-    while True:
-        tc = inegleit.top_card()
-        await websocket.send_text(f"Message text was {tc}")
