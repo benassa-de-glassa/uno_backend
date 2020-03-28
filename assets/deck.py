@@ -85,7 +85,7 @@ class Deck():
         if len(self.pile) > 0:
             return self.pile[-1]
         else:
-            return []
+            return Card('white', 'no card yet', '-1')
     def deal_cards(self, n):
         if n < self.N:
             cards = [self.current_cards.pop() for i in range(n)]
