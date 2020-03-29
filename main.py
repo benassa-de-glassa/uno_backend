@@ -64,6 +64,11 @@ def send_message(player_name, client_message):
             "time": datetime.datetime.now().strftime("%H:%M:%S")
         }
     )
+    await sio.emit('player-message', 
+        {
+            'message': messages[-1]
+        }
+    )
 
 
 @app.middleware('http')
@@ -95,11 +100,6 @@ async def trigger_sio_event(request, call_next):
         }
     )
 
-    await sio.emit('player-message', 
-        {
-            'message': messages[-1]
-        }
-    )
     return response
 
 @sio.on('connect')
