@@ -1,9 +1,9 @@
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
+
+import datetime
 import uvicorn
-#from fastapi.staticfiles import StaticFiles
-#from fastapi.responses import HTMLResponse
 
 import socketio
 
@@ -47,64 +47,64 @@ app.add_websocket_route("/socket.io/", sio_asgi_app)
 
 background_task_started = False
 
+messages = [{
+            "id": -1, 
+            "sender": "Hedwig und Storch", 
+            "text": "Viel Spass mit Inegleit Online!", 
+            "time": "" 
+            }]
+
+@app.post('/lobby/send_message')
+def send_message(player_name, client_message):
+    messages.append(
+        {            
+            "id": messages[-1]["id"] + 1, 
+            "sender": player_name, 
+            "text": client_message,
+            "time": datetime.datetime.now().strftime("%H:%M:%S")
+        }
+    )
+
 
 @app.middleware('http')
 async def trigger_sio_event(request, call_next):
+    print('middleware triggered')
+
+    response = await call_next(request)
+
     await sio.emit('top-card', 
         {
             'topCard': inegleit.get_top_card(),
         }
     )
 
+    await sio.emit('gamestate',
+        {
+            'penalty': inegleit.penalty["own"],
+            'colorChosen': inegleit.chosen_color != "",
+            'chosenColor': inegleit.chosen_color,
+            'activePlayerName': inegleit.get_active_player().attr["name"],
+            'forward': inegleit.forward, 
+        }
+        )
+
     await sio.emit('player-list', 
         {
             'playerList': inegleit.get_all_players(),
             'turn': inegleit.get_active_player_id(),
-            'messages': [{
-                "id": -1, 
-                "sender": "Hedwig und Storch", 
-                "text": "Viel Spass mit Inegleit Online!", 
-                "time": "" 
-                }],
         }
     )
-    response = await call_next(request)
+
+    await sio.emit('player-message', 
+        {
+            'message': messages[-1]
+        }
+    )
     return response
-
-
-async def background_task():
-    pass
-    # while True:
-    #     await sio.sleep(5)
-
-    #     await sio.emit('top-card', 
-    #         {
-    #             'topCard': inegleit.get_top_card(),
-    #         }
-    #     )
-
-    #     await sio.emit('player-list', 
-    #         {
-    #             'playerList': inegleit.get_all_players(),
-    #             'turn': inegleit.get_active_player_id(),
-    #             'messages': [{
-    #                 "id": -1, 
-    #                 "sender": "Hedwig und Storch", 
-    #                 "text": "Viel Spass mit Inegleit Online!", 
-    #                 "time": "" 
-    #                 }],
-    #         }
-    #     )
-
 
 @sio.on('connect')
 async def test_connect(sid, environ):
     print('connect', sid)
-
-    global background_task_started
-    if not background_task_started:
-        sio.start_background_task(background_task)
-        background_task_started = True
 
 @sio.on('disconnect request')
 async def disconnect_request(sid):
@@ -113,5 +113,6 @@ async def disconnect_request(sid):
 @sio.on('disconnect')
 def test_disconnect(sid):
     print('Client disconnected')
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000 , debug=True)

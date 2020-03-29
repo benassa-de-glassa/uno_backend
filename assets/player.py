@@ -17,8 +17,6 @@ class Player():
             "hand": [],
             "said_uno": False
         }
-    def to_json_sendable(self):
-        return {key: self.attr[key] for key in self.attr if key != 'hand'}
         
     def add_cards(self, cards):
         self.attr["hand"].extend(cards)
@@ -35,3 +33,10 @@ class Player():
     def __str__(self):
         return "{} [{}]".format(self.attr["name"], self.attr["id"])
 
+    def to_json(self):
+        return {
+            "name": self.attr["name"], 
+            "id": self.attr["id"],
+            "numberOfCards": len(self.attr["hand"]), 
+            "saidUno": self.attr["said_uno"]
+            }

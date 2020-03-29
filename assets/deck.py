@@ -5,21 +5,25 @@ class Deck():
     """
     Class members:
 
-    N               : number of cards in the deck
-    allcards        : list containing 108 Card(class) in order
-    current_cards   : list of length <108 storing the index of the current cards in the deck in allcards
-                      e.g. [0,1] corresponds to the two cards "red 0" and "green 0" according to the order of creation
-    pile            : already played cards
+    N(int)          : number of cards in the deck
+    allcards(list)  : list containing 108 Card(class) in order
+    current_cards   : list of length <108 storing the index of the current cards
+    (list)            in the deck in allcards
+                      e.g. [0,1] corresponds to the two cards "red 0" and "green 0"
+                      according to the order of creation
+    pile(list)      : list of already played cards
                 
     Class methods:
 
-    shuffle_cards() : returns a random permutation of current_cards
-    get_card(i)     : helper function that returns the Card(class) corresponding to the index i
-    deal_cards(n)   : deals the n top cards e.g. at the beginning of the game or after +2/+4 cards 
+    __init__(seed)  : creates all Card instances and shuffles them
+    shuffle_cards() : applies a random permutation to the current_cards
+    get_card(i)     : helper function that returns the Card(class) corresponding
+                      to the index i
+    deal_cards(n)   : deals the n top cards e.g. at the beginning of the game, 
+                      after +2/+4 cards, or after a player is unable to play
                       returns n instances of Card(class)
-    play_card(i)    : attemts to play the Card with index i, returns True if it is possible and adds it to the pile, and False otherwise
-                      ## TODO: handle that the card is removed from the players hand
-
+    play_card(i)    : attemts to play the Card with index i, returns True if it
+                      is possible and adds it to the pile, and False otherwise
     """
     def __init__(self, seed=None):
         if seed:
@@ -64,7 +68,8 @@ class Deck():
 
         # make a copy of the deck
         self.current_cards = self.allcards.copy()
-        # shuffles the cards
+
+        # apply random permutation (possibility to select a seed)
         self.shuffle_cards()
 
     def place_starting_card(self):
@@ -85,19 +90,26 @@ class Deck():
         if len(self.pile) > 0:
             return self.pile[-1]
         else:
+            # placeholder card
             return Card('white', 'no card yet', '-1')
+
     def deal_cards(self, n):
-        if n < self.N:
+        # checks if there are enough cards in the deck otherwise the pile is
+        # added to the currentcards and reshuffled, keeping the top card
+        if n < len(self.current_cards):
             cards = [self.current_cards.pop() for i in range(n)]
             return cards
         else:
-            # TODO: reshuffle
-            raise ValueError
+            topcard = self.pile.pop()
+            self.current_cards.extend(self.pile)
+            self.pile = [topcard]
+            self.shuffle_cards()
+            self.deal_cards(n)
             
     def to_json(self):
         return {
-            'stack' : [Card.to_json(card) for card in self.allcards],
-            'pile': [Card.to_json(card) for card in self.pile]
+            'stack' : [card.to_json() for card in self.allcards],
+            'pile': [card.to_json() for card in self.pile]
         }
 
     # def from_json(self, deck):
@@ -159,7 +171,5 @@ class Card():
             text = "+2"
         else:
             text = str(self.attr["number"])
-
-        
 
         return self.attr["color"] + " " + text
