@@ -55,8 +55,8 @@ messages = [{
             }]
 
 @app.post('/lobby/send_message')
-def send_message(player_name, client_message):
-    messages.append(
+async def send_message(player_name, client_message):
+    await messages.append(
         {            
             "id": messages[-1]["id"] + 1, 
             "sender": player_name, 
