@@ -142,7 +142,7 @@ class Inegleit():
         return self.players[self.get_active_player_id()]
     
     def get_all_players(self):
-        return [self.players[key].to_json() for key in self.players]
+        return [self.players[key].to_json_sendable() for key in self.players]
     
     def get_top_card(self):
         return self.deck.top_card().attr

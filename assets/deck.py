@@ -85,7 +85,7 @@ class Deck():
         if len(self.pile) > 0:
             return self.pile[-1]
         else:
-            return []
+            return Card('white', 'no card yet', '-1')
     def deal_cards(self, n):
         if n < self.N:
             cards = [self.current_cards.pop() for i in range(n)]
@@ -100,13 +100,13 @@ class Deck():
             'pile': [Card.to_json(card) for card in self.pile]
         }
 
-    def from_json(self, deck):
-        self.allcards = []
-        self.pile = []
-        for card in deck['stack']:
-            self.allcards.append( Card(card['color'], card['number'], card['uid']))
-        for card in deck['pile']:
-            self.pile.append( Card(card['color'], card['number'], card['uid']))
+    # def from_json(self, deck):
+    #     self.allcards = []
+    #     self.pile = []
+    #     for card in deck['stack']:
+    #         self.allcards.append( Card(card['color'], card['number'], card['uid']))
+    #     for card in deck['pile']:
+    #         self.pile.append( Card(card['color'], card['number'], card['uid']))
    
     def play_card(self, card):
         self.pile.append(card)
@@ -130,12 +130,12 @@ class Card():
             return True
         return False
         
-    def to_json(self):
-        return self.attr
+    # def to_json(self):
+    #     return self.attr
 
-    def from_json(self, card):
-        self.attr["color"] = card["color"]
-        self.attr["number"] = card["number"]
+    # def from_json(self, card):
+    #     self.attr["color"] = card["color"]
+    #     self.attr["number"] = card["number"]
     
     def inegleitable(self, top_card):
         """ 
