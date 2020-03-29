@@ -86,18 +86,22 @@ class Deck():
             return self.pile[-1]
         else:
             return Card('white', 'no card yet', '-1')
+
     def deal_cards(self, n):
-        if n < self.N:
+        if n < len(self.current_cards):
             cards = [self.current_cards.pop() for i in range(n)]
             return cards
         else:
-            # TODO: reshuffle
-            raise ValueError
+            topcard = self.pile.pop()
+            self.current_cards.extend(self.pile)
+            self.pile = [topcard]
+            self.shuffle_cards()
+            self.deal_cards(n)
             
     def to_json(self):
         return {
-            'stack' : [Card.to_json(card) for card in self.allcards],
-            'pile': [Card.to_json(card) for card in self.pile]
+            'stack' : [card.to_json() for card in self.allcards],
+            'pile': [card.to_json() for card in self.pile]
         }
 
     # def from_json(self, deck):
@@ -159,7 +163,5 @@ class Card():
             text = "+2"
         else:
             text = str(self.attr["number"])
-
-        
-
+            
         return self.attr["color"] + " " + text
