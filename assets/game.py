@@ -111,7 +111,6 @@ class Inegleit():
 
         return (True, str(self.deck.top_card()))
 
-
     def next_player(self):
         # resets the indicators
         self.card_picked_up = False
@@ -120,7 +119,8 @@ class Inegleit():
         self.penalty["own"] = self.penalty["next"]
         self.penalty["next"] = 0
 
-        i = (self.active_index + self.forward) % self.n_players
+        # 2*bool-1 is 1 if true and -1 if false #maths
+        i = (self.active_index + (2*self.forward-1)) % self.n_players
         self.active_index = i
 
         if DEBUG:
@@ -139,11 +139,11 @@ class Inegleit():
 
     def get_active_player(self):
         if not self.n_players:
-            return [{"id": -1, "name": "no players yet"}]
+            return Player(None, -1)
         return self.players[self.get_active_player_id()]
     
     def get_all_players(self):
-        return [self.players[key].to_json_sendable() for key in self.players]
+        return [self.players[key].to_json() for key in self.players]
     
     def get_top_card(self):
         return self.deck.top_card().attr
@@ -169,6 +169,7 @@ class Inegleit():
             return [False, "player does not have that card"]
 
         response = "" 
+        reset_color = False # if the card is played ontop of a black card reset the chosen color to ""
         if not self.player_is_active(player_id):
             # checks if the card can be inegleit
             if card.inegleitable(top_card):
@@ -180,13 +181,15 @@ class Inegleit():
                 # remove requests to 'inegleit' a card
                 return (False, "not your turn, not possible to inegleit")
 
+         
         else: # player is active
             # checks if the card can be played, argument chosen_color is only
             # relevant if a black card lies on top
             if top_card.attr["color"] == "black":
                 if not card.attr["color"] == self.chosen_color:
                     return [False, "play color {}".format(self.chosen_color)]
-            
+                reset_color = True
+
             elif not card.playable(top_card):
                 # remove request to play a wrong card
                 return [False, "card not playable"] 
@@ -232,6 +235,8 @@ class Inegleit():
 
         if not player.attr["hand"]: # player has no cards left
             return self.player_finished()
+        if reset_color:
+            self.chosen_color = ""
 
         self.next_player()
         
@@ -322,17 +327,19 @@ class Inegleit():
         str     : response
         """
         if player_id != self.get_active_player_id():
-            return [False, "not your turn"]
+            return [False, False, "not your turn"]
 
         response = "picked up card"
-        
+        reason_is_penalty = False # frontend needs to know if the card was picked up due to penalty or not
+
         if self.penalty["own"]:
+            reason_is_penalty = True
             self.penalty["own"] -= 1
             response += ", take {} more".format(self.penalty["own"])
         elif not self.card_picked_up:
             self.card_picked_up = True
         else:
-            return (False, "you already have enough cards")
+            return (False, False, "you already have enough cards")
 
         card = self.deck.deal_cards(1) # returns a list of length 1
         self.players[player_id].add_cards(card)
@@ -347,7 +354,7 @@ class Inegleit():
         if DEBUG:
             print("{} picks up {}".format(self.players[player_id], card[0]))
 
-        return (True, bool(self.penalty["own"]), response)
+        return (True, reason_is_penalty, response)
         
     def event_uno(self, player_id):
         player = self.players[player_id]

@@ -78,6 +78,16 @@ async def trigger_sio_event(request, call_next):
         }
     )
 
+    await sio.emit('gamestate',
+        {
+            'penalty': inegleit.penalty["own"],
+            'colorChosen': inegleit.chosen_color != "",
+            'chosenColor': inegleit.chosen_color,
+            'activePlayerName': inegleit.get_active_player().attr["name"],
+            'forward': inegleit.forward, 
+        }
+        )
+
     await sio.emit('player-list', 
         {
             'playerList': inegleit.get_all_players(),

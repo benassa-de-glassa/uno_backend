@@ -7,7 +7,7 @@ from assets.game import Inegleit
 router = APIRouter()
 
 # main game object
-inegleit = Inegleit(1)
+inegleit = Inegleit(2)
     
 @router.post('/add_player')
 def add_player(player_name: str):
