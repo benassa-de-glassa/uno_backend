@@ -119,7 +119,8 @@ class Inegleit():
         self.penalty["own"] = self.penalty["next"]
         self.penalty["next"] = 0
 
-        i = (self.active_index + self.forward) % self.n_players
+        # 2*bool-1 is 1 if true and -1 if false #maths
+        i = (self.active_index + (2*self.forward-1)) % self.n_players
         self.active_index = i
 
         if DEBUG:
@@ -142,7 +143,7 @@ class Inegleit():
         return self.players[self.get_active_player_id()]
     
     def get_all_players(self):
-        return [self.players[key].to_json_sendable() for key in self.players]
+        return [self.players[key].to_json() for key in self.players]
     
     def get_top_card(self):
         return self.deck.top_card().attr
@@ -329,8 +330,10 @@ class Inegleit():
             return [False, False, "not your turn"]
 
         response = "picked up card"
-        
+        reason_is_penalty = False # frontend needs to know if the card was picked up due to penalty or not
+
         if self.penalty["own"]:
+            reason_is_penalty = True
             self.penalty["own"] -= 1
             response += ", take {} more".format(self.penalty["own"])
         elif not self.card_picked_up:
@@ -351,7 +354,7 @@ class Inegleit():
         if DEBUG:
             print("{} picks up {}".format(self.players[player_id], card[0]))
 
-        return (True, bool(self.penalty["own"]), response)
+        return (True, reason_is_penalty, response)
         
     def event_uno(self, player_id):
         player = self.players[player_id]
