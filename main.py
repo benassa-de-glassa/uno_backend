@@ -34,11 +34,13 @@ app.include_router(
     game.router,
     prefix='/game')
 
+# create a Socket.IO server 
 sio = socketio.AsyncServer(
     async_mode='asgi',
     cors_allowed_origins='*' #','.join(config.ALLOW_ORIGIN)
 )
 
+# integrate in the existing ASGI app running on Uvicorn
 sio_asgi_app = socketio.ASGIApp(socketio_server=sio, other_asgi_app=app)
 
 
@@ -48,23 +50,26 @@ app.add_websocket_route("/socket.io/", sio_asgi_app)
 background_task_started = False
 
 messages = [{
-            "id": -1, 
+            "id": 0, 
             "sender": "Hedwig und Storch", 
             "text": "Viel Spass mit Inegleit Online!", 
             "time": "" 
             }]
 
+current_message_id = 0
+
 @app.post('/lobby/send_message')
 def send_message(player_name, client_message):
+    global current_message_id
+    current_message_id += 1
     messages.append(
         {            
-            "id": messages[-1]["id"] + 1, 
+            "id": current_message_id, 
             "sender": player_name, 
             "text": client_message,
             "time": datetime.datetime.now().strftime("%H:%M:%S")
         }
     )
-
 
 @app.middleware('http')
 async def trigger_sio_event(request, call_next):
