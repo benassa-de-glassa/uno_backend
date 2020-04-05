@@ -203,7 +203,6 @@ class Inegleit():
         # works for both inegleit and a normally played card
         # if there is still a penalty i.e. cards that the player has to pick up
         if self.penalty["own"]:
-            
             if card.attr["number"] == 12 and self.penalty["type"] == 2:
                 tmp = self.penalty["own"]
                 self.penalty["next"] = tmp + 2
@@ -264,7 +263,7 @@ class Inegleit():
                 # if the card can be inegleit make the player the active player
                 # and go to the next player
                 self.active_index = self.order.index(player_id)
-                response += "inegleit!, "
+                response += "inegleit!"
             else: 
                 # remove requests to 'inegleit' a card
                 return [False, "not your turn, not possible to inegleit"]
@@ -275,20 +274,19 @@ class Inegleit():
             if card.attr["number"] == 1 and self.penalty["type"] == 4:
                 self.penalty["next"] = tmp + 4
                 self.penalty["own"] = 0     
-                response += ", +{} for the next player".format(tmp+2)
+                response += " +{} for the next player".format(tmp+2)
             else:
                 # remove requests to play when there are still cards that have to be 
                 # picked up AND NO +4 is played
                 return [False, "pick up {} cards first".format(self.penalty["own"])]
         
+        elif card.attr["number"] == 1: # +4
+            self.penalty["type"] = 4
+            self.penalty["next"] = 4
+            response += " +4 for the next player"
+
         self.can_choose_color = True
         response += "choose color"
-        
-        if card.attr["number"] == 1: # +4
-            self.penalty["type"] = 4
-            assert self.penalty["next"] == 0
-            self.penalty["next"] = 4
-            response += ", +4 for the next player"
         
         self.deck.play_card(card)
         player.remove_card(card)
