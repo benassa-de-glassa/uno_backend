@@ -20,6 +20,13 @@ def remove_player(player_id: int):
     """
     pass
 
+@router.get('/player_exists')
+def add_player(player_id: int, player_name: str):
+    for player in inegleit.get_all_players():
+        if player_id == player['id'] and player_name == player['name']:
+            return True
+    return False
+
 @router.post('/start_game')
 def start_game():
     """
