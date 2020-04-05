@@ -104,11 +104,6 @@ async def trigger_sio_event(request, call_next):
 
 @sio.on('connect')
 async def connect(sid, environ):
-    await sio.emit('player-message', 
-        {
-            'message': messages[0]
-        }
-    )
     print('connect', sid)
 
 @sio.on('disconnect request')
