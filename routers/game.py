@@ -3,7 +3,6 @@ import os
 
 from assets.game import Inegleit
 
-
 router = APIRouter()
 
 # main game object
@@ -12,8 +11,7 @@ inegleit = Inegleit()
     
 @router.post('/add_player')
 def add_player(player_name: str):
-    p = inegleit.add_player(player_name)
-    return p
+    return inegleit.add_player(player_name)
 
 @router.post('/remove_player')
 def remove_player(player_id: int):
