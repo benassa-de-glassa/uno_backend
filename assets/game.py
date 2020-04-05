@@ -61,7 +61,7 @@ class Inegleit():
         """ 
         creates player "name", returns the unique id
         """
-        if name in [p.attr["name"] for p in self.players]:
+        if name in [p.attr["name"] for p in self.players.values()]:
             return False, "name already taken."
 
         player_id = self.unique_id
