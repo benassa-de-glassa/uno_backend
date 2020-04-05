@@ -103,7 +103,7 @@ async def trigger_sio_event(request, call_next):
     return response
 
 @sio.on('connect')
-async def test_connect(sid, environ):
+async def connect(sid, environ):
     print('connect', sid)
 
 @sio.on('disconnect request')
