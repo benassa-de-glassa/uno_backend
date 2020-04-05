@@ -61,6 +61,9 @@ class Inegleit():
         """ 
         creates player "name", returns the unique id
         """
+        if name in [p.attr["name"] for p in self.players.values()]:
+            return False, "name already taken."
+
         player_id = self.unique_id
         self.unique_id += 1
 
@@ -72,7 +75,7 @@ class Inegleit():
         if DEBUG:
             print("Added player: {} [{}]".format(name, player_id))
         
-        return p.attr
+        return True, p.attr
     
     def remove_player(self, player_id):
         player = self.players[player_id]
