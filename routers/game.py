@@ -1,13 +1,19 @@
 from fastapi import APIRouter, WebSocket
-import os
+
+import socketio
 
 from assets.game import Inegleit
 
 router = APIRouter()
 
+sio = socketio.AsyncServer(
+    async_mode='asgi',
+    cors_allowed_origins='*' #','.join(config.ALLOW_ORIGIN)
+)
+
 # main game object
-# inegleit = Inegleit(2) # seed
-inegleit = Inegleit()
+inegleit = Inegleit(2) # seed
+#inegleit = Inegleit()
     
 @router.post('/add_player')
 def add_player(player_name: str):
@@ -18,7 +24,7 @@ def remove_player(player_id: int):
     """
     Entfernt einen Spieler aus dem Spiel
     """
-    pass
+    return inegleit.remove_player(player_id)
 
 @router.post('/start_game')
 def start_game():
@@ -50,12 +56,22 @@ def active_player():
     return inegleit.get_active_player().attr
 
 @router.post('/play_card')
-def play_card(player_id: int, card_id: int):
+async def play_card(player_id: int, card_id: int):
     """
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    return inegleit.event_play_card(player_id, card_id)
+    response = inegleit.event_play_card(player_id, card_id)
+
+    # check to avoid KeyError, "inegleit" key is only there for valid moves
+    if response["moveValid"] and response["inegleit"]:
+        await sio.emit('inegleit',
+            {
+                "playerName": "Lara"
+            }
+        )
+        
+    return response
     
 @router.post('/play_black_card')
 def play_black_card(player_id: int, card_id: int):
