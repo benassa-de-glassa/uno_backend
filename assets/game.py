@@ -167,9 +167,11 @@ class Inegleit():
         player = self.players[player_id]
         top_card = self.deck.top_card()
 
+        is_inegleit = False
+
         # asserts that the player actually has the card
         if not player.has_card(card):
-            return [False, "player does not have that card"]
+            return {"moveValid": False, "response": "player does not have that card"}
 
         response = "" 
         reset_color = False # if the card is played ontop of a black card reset the chosen color to ""
@@ -179,10 +181,11 @@ class Inegleit():
                 # if the card can be inegleit make the player the active player
                 # and go to the next player
                 self.active_index = self.order.index(player_id)
+                is_inegleit = True
                 response = "inegleit!"
             else: 
                 # remove requests to 'inegleit' a card
-                return (False, "not your turn, not possible to inegleit")
+                return {"moveValid": False, "response": "not your turn, not possible to inegleit"}
 
          
         else: # player is active
@@ -190,12 +193,12 @@ class Inegleit():
             # relevant if a black card lies on top
             if top_card.attr["color"] == "black":
                 if not card.attr["color"] == self.chosen_color:
-                    return [False, "play color {}".format(self.chosen_color)]
+                    return {"moveValid": False, "response": "play color {}".format(self.chosen_color)}
                 reset_color = True
 
             elif not card.playable(top_card):
                 # remove request to play a wrong card
-                return [False, "card not playable"] 
+                return {"moveValid": False, "response": "card not playable"}
         
         # only valid cards from the active player make it until here
         
@@ -211,7 +214,7 @@ class Inegleit():
             else:
                 # remove requests to play when there are still cards that have to be 
                 # picked up AND NO +2 is played
-                return [False, "pick up {} cards first".format(self.penalty["own"])]
+                return {"requestValid": False, "response": "pick up {} cards first".format(self.penalty["own"])}
 
         # only valid cards from the active player without a penalty make it here
 
@@ -241,8 +244,14 @@ class Inegleit():
             self.chosen_color = ""
 
         self.next_player()
+
+        responseJSON = {
+            "moveValid": True, 
+            "inegleit": is_inegleit, 
+            "response": response
+        }
         
-        return [True, response]
+        return responseJSON
 
     def event_play_black_card(self, player_id, card_id):
         card = self.deck.get_card(card_id)

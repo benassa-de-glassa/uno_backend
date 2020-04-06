@@ -1,15 +1,15 @@
+import datetime
+
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
-
-import datetime
 import uvicorn
-
 import socketio
 
 from routers import game
-#from routers.game import inegleit
+
 inegleit = game.inegleit
+sio = game.sio
 
 origins = [
     "*",
@@ -34,15 +34,10 @@ app.include_router(
     game.router,
     prefix='/game')
 
-sio = socketio.AsyncServer(
-    async_mode='asgi',
-    cors_allowed_origins='*' #','.join(config.ALLOW_ORIGIN)
-)
-
+# mount the socket coming from the routers/game.py file
 sio_asgi_app = socketio.ASGIApp(socketio_server=sio, other_asgi_app=app)
 
-
-app.add_route("/socket.io/", route=sio_asgi_app)#, methods=['GET', 'POST'])
+app.add_route("/socket.io/", route=sio_asgi_app)
 app.add_websocket_route("/socket.io/", sio_asgi_app)
 
 background_task_started = False
@@ -50,7 +45,7 @@ background_task_started = False
 messages = [{
             "id": -1, 
             "sender": "Hedwig und Storch", 
-            "text": "Viel Spass mit Inegleit Online!", 
+            "text": "Viel Spass mit inegleit Online!", 
             "time": "" 
             }]
 
