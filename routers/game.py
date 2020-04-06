@@ -61,15 +61,11 @@ async def play_card(player_id: int, card_id: int):
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    response = inegleit.event_play_card(player_id, card_id)
+    response = inegleit.test_play_card(player_id, card_id)
 
     # check to avoid KeyError, "inegleit" key is only there for valid moves
-    if response["moveValid"] and response["inegleit"]:
-        await sio.emit('inegleit',
-            {
-                "playerName": "Lara"
-            }
-        )
+    if response["requestValid"] and response["inegleit"]:
+        await sio.emit('inegleit', {"playerName": "Lara"})
         
     return response
     
