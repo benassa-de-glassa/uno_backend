@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 
 from .player import Player
@@ -6,6 +8,11 @@ from .deck import Deck
 import json
 
 DEBUG = True
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.FileHandler('inegleit.log', mode='a'))
+logger.debug("Logging started")
 
 class Inegleit():
     """
@@ -59,10 +66,16 @@ class Inegleit():
 
     def add_player(self, name):
         """ 
-        creates player "name", returns the unique id
+        Checks if the name is already taken or an emtpy string and adds 
+        it to the player dict after assigning a unique ID. 
         """
+        if not name:
+            logger.debug("{} is not a valid name".format(name))
+            return {"requestValid": False, "response": "choose non-empty string"}
+
         if name in [p.attr["name"] for p in self.players.values()]:
-            return False, "name already taken."
+            logger.debug("Suggested name is already taken")
+            return {"requestValid": False, "response": "name already taken"}
 
         player_id = self.unique_id
         self.unique_id += 1
@@ -72,12 +85,16 @@ class Inegleit():
         self.n_players += 1
         self.order.append(player_id)
 
-        if DEBUG:
-            print("Added player: {} [{}]".format(name, player_id))
+        logger.info("Added player: {} [{}]".format(name, player_id))
         
-        return True, p.attr
+        return {"requestValid": True, "player": p.attr}
     
     def remove_player(self, player_id):
+        logger.debug("Try to remove player ID {}".format(player_id))
+
+        if not player_id in self.players.keys():
+            logger.debug("player not found")
+            return {"requestValid": False, "response": "player not found"}
         player = self.players[player_id]
         response = "Removed player: {}".format(player) 
         
@@ -85,22 +102,25 @@ class Inegleit():
         self.order.remove(player_id)
         self.n_players -= 1
 
-        # if the last player in self.order is active, decrease the active index by one
-        self.active_index -= (self.active_index == self.n_players)
+        # if the last player in self.order is active move to the next
+        if self.active_index == self.n_players:
+            self.penalty["next"] = 0
+            self.next_player()
 
-        if DEBUG:
-            print(response)
+        logger.info(response)
 
-        return (True, response)
+        return {"requestValid": True, "response": response}
 
     def deal_cards(self, player_id, n):
+        if not player_id in self.players.keys():
+            logger.critical("Player with id {} not found!".format(player_id))
+            return []
         # lifts the n top cards of the deck
         cards = self.deck.deal_cards(n)
         # adds them to the hand of the player with id=player_id
         self.players[player_id].add_cards(cards)
 
-        if DEBUG:
-            print("Dealt {} cards to player {} [{}]".format(n, self.players[player_id].attr["name"], player_id))
+        logger.info("Dealt {} cards to player {} [{}]".format(n, self.players[player_id].attr["name"], player_id))
         
         return [card.attr for card in cards]
 
@@ -109,10 +129,11 @@ class Inegleit():
             self.deck.place_starting_card()
             self.game_started = True
 
-        if DEBUG:
-            print("Started game. {}'s turn".format(self.get_active_player()))
+        response = "Started game. {}'s turn".format(self.get_active_player().attr["name"])
 
-        return (True, str(self.deck.top_card()))
+        logger.info(response)
+
+        return {"requestValid": True, "response": response}
 
     def next_player(self):
         # resets the indicators
@@ -126,13 +147,14 @@ class Inegleit():
         i = (self.active_index + (2*self.forward-1)) % self.n_players
         self.active_index = i
 
-        if DEBUG:
-            print("{}'s turn. {} penalty cards".format(
+        response = "{}'s turn. {} penalty cards".format(
                 self.get_active_player().attr["name"],
                 self.penalty["own"]
-            ))
+            )
 
-        return (True, "{}'s turn".format(self.get_active_player().attr["name"]))
+        logger.info(response)
+
+        return {"requestValid": True, "response": response}
 
     def get_active_player_id(self):
         if self.order != []:
@@ -141,21 +163,116 @@ class Inegleit():
             return None
 
     def get_active_player(self):
+        # if there are no players return an "empty" player
         if not self.n_players:
             return Player(None, -1)
         return self.players[self.get_active_player_id()]
     
     def get_all_players(self):
-        return [self.players[key].to_json() for key in self.players]
+        return [ self.players[key].to_json() for key in self.players ]
     
     def get_top_card(self):
+        # should not be needed with websockets working
         return self.deck.top_card().attr
 
     def get_cards(self, player_id):
         return [ card.attr for card in self.players[player_id].attr["hand"] ]
 
     def player_is_active(self, player_id):
+        # helper method for readability
         return self.get_active_player_id() == player_id
+
+    def test_validate_move(self, player, card, top_card):
+        if not self.player_is_active(player.attr["id"]):
+            # checks if the card can be inegleit
+            if card.inegleitable(top_card):
+                # if the card can be inegleit make the player the active player
+                # and go to the next player
+                self.active_index = self.order.index(player.attr["id"])
+
+                if self.penalty["own"]:
+                    assert card.able_to_raise_penalty(top_card)
+                    return {"requestValid": True, "inegleit": True, "raisePenalty": True}
+                return {"requestValid": True, "inegleit": True}
+            else: 
+                # remove requests to 'inegleit' a card
+                return {"requestValid": False, "response": "not your turn, not possible to inegleit"}
+        
+        # ==> player is active
+
+        # checks if the player has a penalty (= cards to pick up)
+        if self.penalty["own"]:
+            if card.able_to_raise_penalty(top_card):
+                return {"requestValid": True, "raisePenalty": True}
+            else:
+                return {"requestValid": False, "response": "pick up {} cards first".format(self.penalty["own"])}
+        
+        if player.attr["penalty"]:
+            return {"requestValid": False, "response": "pick up {} cards as punishment".format(player.attr["penalty"])}
+
+        # checks if the card can be played, argument chosen_color is only
+        # relevant if a black card lies on top
+        if top_card.attr["color"] == "black":
+            if card.attr["color"] == self.chosen_color:
+                # reset color choice to empty
+                self.chosen_color = ""
+                return {"requestValid": True}
+            else:
+                return {"requestValid": False, "response": "play color {}".format(self.chosen_color)}
+
+        elif not card.playable(top_card):
+            # remove request to play a wrong card
+            return {"requestValid": False, "response": "card not playable"}
+
+        return {"requestValid": True}
+
+    def test_play_card(self, player_id, card_id):
+        card = self.deck.get_card(card_id)
+        player = self.players[player_id]
+        top_card = self.deck.top_card()
+
+        logger.debug("Request from [{}] to play {} on {}".format(player_id, card, top_card))
+       
+        response = self.validate_move(player, card, top_card)
+        
+        logger.debug(response)
+
+        if not response["requestValid"]:
+            return response
+
+        # ==> move is valid
+
+        # if the move is valid although there is a penalty this means
+        # the player can raise the penalty for the next player
+        if self.penalty["own"]:
+            self.penalty["next"] = self.penalty["own"]
+            self.penalty["own"] = 0
+            
+        message = "card played"
+        if card.attr["number"] == 10: # reverse direction
+            self.forward = not self.forward
+            message += ", reversed direction"
+        elif card.attr["number"] == 11: # skip player
+            self.next_player() # skips this player
+            message += ", next player skipped"
+        elif card.attr["number"] == 12: # +2
+            self.penalty["next"] += 2
+            message += ", +{} for the next player".format(self.penalty["next"])
+
+        self.deck.play_card(card)
+        player.remove_card(card)
+
+        logger.debug("{} played {}".format(player, card))
+
+        if not player.attr["hand"]: # empty list <=> player has no cards left
+            return self.player_finished()
+            
+        self.next_player()
+
+        response["response"] = message
+
+        return response
+
 
     def event_play_card(self, player_id, card_id):
         """ 
@@ -163,18 +280,26 @@ class Inegleit():
 
         Returns ( card_played(bool), response(str) )
         """
+        
         card = self.deck.get_card(card_id)
         player = self.players[player_id]
         top_card = self.deck.top_card()
+
+        logger.debug("Request from [{}] to play {} on {}".format(player_id, card, top_card))
 
         is_inegleit = False
 
         # asserts that the player actually has the card
         if not player.has_card(card):
-            return {"moveValid": False, "response": "player does not have that card"}
+            response = "player does not have that card"
+            logger.warning("Move denied:" + response)
+            return {"requestValid": False, "response": response}
 
         response = "" 
-        reset_color = False # if the card is played ontop of a black card reset the chosen color to ""
+
+        # if the card is played ontop of a black card reset the chosen color to ""
+        reset_color = False 
+
         if not self.player_is_active(player_id):
             # checks if the card can be inegleit
             if card.inegleitable(top_card):
@@ -185,20 +310,19 @@ class Inegleit():
                 response = "inegleit!"
             else: 
                 # remove requests to 'inegleit' a card
-                return {"moveValid": False, "response": "not your turn, not possible to inegleit"}
-
+                return {"requestValid": False, "response": "not your turn, not possible to inegleit"}
          
         else: # player is active
             # checks if the card can be played, argument chosen_color is only
             # relevant if a black card lies on top
             if top_card.attr["color"] == "black":
                 if not card.attr["color"] == self.chosen_color:
-                    return {"moveValid": False, "response": "play color {}".format(self.chosen_color)}
+                    return {"requestValid": False, "response": "play color {}".format(self.chosen_color)}
                 reset_color = True
 
             elif not card.playable(top_card):
                 # remove request to play a wrong card
-                return {"moveValid": False, "response": "card not playable"}
+                return {"requestValid": False, "response": "card not playable"}
         
         # only valid cards from the active player make it until here
         
@@ -246,7 +370,7 @@ class Inegleit():
         self.next_player()
 
         responseJSON = {
-            "moveValid": True, 
+            "requestValid": True, 
             "inegleit": is_inegleit, 
             "response": response
         }
@@ -377,7 +501,10 @@ class Inegleit():
     def player_finished(self):
         player = self.get_active_player()
         if player.attr["said_uno"]:
-            return (True, "{} won. Congratulations!".format(player.attr["name"]))
+            if not player.attr["penalty"]:
+                return (True, "{} won. Congratulations!".format(player.attr["name"]))
+            else:
+                return (False, "Player has an active penalty of {} cards.".format(player.attr["penalty"]))
         else:
             self.penalty["own"] = 2
             self.penalty["type"] = "uno"
@@ -386,20 +513,20 @@ class Inegleit():
     def reset_game(self):
         self.__init__(seed=self.seed)
 
-    def to_json(self, filename):
-        game = {
-            'game': 'uno',
-            'direction': self.forward,
-            'players': [player.to_json() for player in self.players],
-            'deck': self.deck.to_json(), 
-        }
-        with open(filename, 'w') as outfile:
-            json.dump(game, outfile)
+    # def to_json(self, filename):
+    #     game = {
+    #         'game': 'uno',
+    #         'direction': self.forward,
+    #         'players': [player.to_json() for player in self.players],
+    #         'deck': self.deck.to_json(), 
+    #     }
+    #     with open(filename, 'w') as outfile:
+    #         json.dump(game, outfile)
 
-    def from_json(self, filename):
-        with open(filename, 'r') as infile:
-            game = json.load(infile)
+    # def from_json(self, filename):
+    #     with open(filename, 'r') as infile:
+    #         game = json.load(infile)
 
-            self.forward = game['direction']
-            self.players = [Player(self, player['name']) for player in game['players']]
-            self.deck = Deck().from_json(game['deck'])
+    #         self.forward = game['direction']
+    #         self.players = [Player(self, player['name']) for player in game['players']]
+    #         self.deck = Deck().from_json(game['deck'])
