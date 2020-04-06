@@ -15,7 +15,8 @@ class Player():
             "name": name,
             "id": uid,
             "hand": [],
-            "said_uno": False
+            "said_uno": False,      # bool
+            "penalty": 0            # int, punishment for not saying uno
         }
         
     def add_cards(self, cards):
