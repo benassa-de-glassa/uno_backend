@@ -68,8 +68,6 @@ async def send_message(player_name, client_message):
 
 @app.middleware('http')
 async def trigger_sio_event(request, call_next):
-    print('middleware triggered')
-
     response = await call_next(request)
 
     await sio.emit('top-card', 
