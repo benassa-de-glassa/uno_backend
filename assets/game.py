@@ -129,11 +129,9 @@ class Inegleit():
             self.deck.place_starting_card()
             self.game_started = True
 
-        message = "Started game. {}'s turn".format(self.get_active_player().attr["name"])
-
-        logger.info(response)
-
-        return {"requestValid": True, "message": message}
+            logger.info( "Started game. {}'s turn".format(self.get_active_player().attr["name"]) )
+        
+        return {"requestValid": True}
 
     def next_player(self):
         # resets the indicators
@@ -232,6 +230,11 @@ class Inegleit():
         top_card = self.deck.top_card()
 
         logger.debug("Request from [{}] to play {} on {}".format(player_id, card, top_card))
+
+        if not player.has_card(card):
+            response = "player does not have that card"
+            logger.warning("Move denied:" + response)
+            return {"requestValid": False, "message": response}
        
         response = self.test_validate_move(player, card, top_card)
         
@@ -270,6 +273,9 @@ class Inegleit():
         self.next_player()
 
         response["message"] = message
+
+        if not "inegleit" in response:
+            response["inegleit"] = False
 
         return response
 
