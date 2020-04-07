@@ -424,9 +424,17 @@ class Inegleit():
             return (False, "{} didn't say uno, pick up two cards!".format(player.attr["name"]))    
     
     def reset_game(self, player_id):
-        logger.info("Game reset by {}".format(self.players[player_id]))
-        self.__init__(seed=self.seed, testcase=self.testcase)
+        try:
+            logger.info("Game reset by {}".format(self.players[player_id]))
+        except KeyError:
+            # if somebody else already reset the game there is no key anymore
+            logger.warning("Game reset by former id {}".format(player_id))
+
+        if self.game_started:
+            self.__init__(seed=self.seed, testcase=self.testcase)
+        
         return {"requestValid": True}
+        
 
     # def to_json(self, filename):
     #     game = {
