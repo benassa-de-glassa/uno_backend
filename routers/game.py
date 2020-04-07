@@ -18,6 +18,8 @@ logging.getLogger('socketio').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
 logging.getLogger('geventwebsocket.handler').setLevel(logging.ERROR)
 
+logger = logging.getLogger("backend")
+
 
 # main game object
 inegleit = Inegleit(seed=1, testcase=1) # seed
@@ -121,6 +123,7 @@ async def say_uno(player_id: int):
     response = inegleit.event_uno(player_id)
     
     if response["requestValid"]:
+        logger.debug("emitted server message:", "{} said UNO!".format(player_id))
         await sio.emit('message', 
             {"sender": "server", "text": "{} said UNO!".format(player_id)})
     return response
