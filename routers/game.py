@@ -123,11 +123,13 @@ async def say_uno(player_id: int):
     response = inegleit.event_uno(player_id)
     
     if response["requestValid"]:
-        logger.debug("emitted server message:", "{} said UNO!".format(player_id))
+        logger.debug("emitted server message: " + "{} said UNO!".format(player_id))
         await sio.emit('message', 
             {"sender": "server", "text": "{} said UNO!".format(player_id)})
     return response
 
 @router.post('/reset_game')
-def reset_game(player_id: int):
+async def reset_game(player_id: int):
+    logger.debug("emitted server message: Game reset")
+    await sio.emit('message', {"id": 99, "sender": "server", "text": "Game reset", "time":"0"})
     return inegleit.reset_game(player_id)
