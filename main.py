@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
@@ -10,6 +11,14 @@ from routers import game
 
 inegleit = game.inegleit
 sio = game.sio
+
+logger = logging.getLogger("backend")
+logfilename = "inegleit.log"
+logger.setLevel(logging.DEBUG)
+fh = logging.FileHandler(logfilename, mode="a")
+fh.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
+logger.addHandler(fh)
+logger.info("[{}] Logging started in {}".format(datetime.datetime.now().strftime("%H:%M:%S"), logfilename))
 
 origins = [
     "*",
@@ -40,31 +49,29 @@ sio_asgi_app = socketio.ASGIApp(socketio_server=sio, other_asgi_app=app)
 app.add_route("/socket.io/", route=sio_asgi_app)
 app.add_websocket_route("/socket.io/", sio_asgi_app)
 
-background_task_started = False
-
-messages = [{
-            "id": -1, 
-            "sender": "Hedwig und Storch", 
-            "text": "Viel Spass mit inegleit Online!", 
-            "time": "" 
-            }]
+message_id = 1
+messages = []
+message_queue = [
+    {
+        "id": 1,
+        "sender": "Hedwig und Storch", 
+        "text": "Viel Spass mit Inegleit Online!",
+        "time": datetime.datetime.now().strftime("%H:%M:%S")
+    }
+]
 
 @app.post('/lobby/send_message')
 async def send_message(player_name, client_message):
-    messages.append(
+    global message_id
+    message_id += 1
+    message_queue.append(
         {            
-            "id": messages[-1]["id"] + 1, 
+            "id": message_id, 
             "sender": player_name, 
             "text": client_message,
             "time": datetime.datetime.now().strftime("%H:%M:%S")
         }
     )
-    await sio.emit('player-message', 
-        {
-            'message': messages[-1]
-        }
-    )
-
 
 @app.middleware('http')
 async def trigger_sio_event(request, call_next):
@@ -90,6 +97,15 @@ async def trigger_sio_event(request, call_next):
         {
             'playerList': inegleit.get_all_players(),
             'turn': inegleit.get_active_player_id(),
+        }
+    )
+
+    while message_queue:
+        message = message_queue.pop(0)
+        messages.append(message)
+        await sio.emit('player-message', 
+        {
+            'message': message
         }
     )
 

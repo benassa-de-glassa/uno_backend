@@ -9,10 +9,7 @@ import json
 
 DEBUG = True
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler('inegleit.log', mode='a'))
-logger.debug("Logging started")
+logger = logging.getLogger("backend")
 
 class Inegleit():
     """
@@ -224,7 +221,7 @@ class Inegleit():
 
         # checks if the card can be played, argument chosen_color is only
         # relevant if a black card lies on top
-        if top_card.attr["color"] == "black":
+        if top_card.attr["color"] == "black" and not card.attr["color"] == "black":
             if card.attr["color"] == self.chosen_color:
                 # reset color choice to empty
                 self.chosen_color = ""
@@ -236,6 +233,15 @@ class Inegleit():
             # remove request to play a wrong card
             return {"requestValid": False, "message": "card not playable"}
 
+        if len(player.attr["hand"]) == 1:
+            if player.attr["saidUno"]:
+                return {"requestValid": True, "playerFinished": player.attr}
+            else:
+                player.attr["penalty"] = 2
+                message = "{} didn't say uno, has to pick up two cards!".format(player)
+                logger.info(message)
+                return {"requestValid": False, "message": message}
+
         return {"requestValid": True}
 
     def test_play_card(self, player_id, card_id):
@@ -243,7 +249,7 @@ class Inegleit():
         player = self.players[player_id]
         top_card = self.deck.top_card()
 
-        logger.debug("Request from [{}] to play {} on {}".format(player_id, card, top_card))
+        logger.debug("Request from {} to play {} on {}".format(player, card, top_card))
 
         if not player.has_card(card):
             response = "player does not have that card"
@@ -259,13 +265,15 @@ class Inegleit():
 
         # ==> move is valid
 
+        message = "card played"
+
         # if the move is valid although there is a penalty this means
         # the player can raise the penalty for the next player
         if self.penalty["own"]:
             self.penalty["next"] = self.penalty["own"]
             self.penalty["own"] = 0
-            
-        message = "card played"
+            message += ", penalty raised"
+        
         if card.attr["number"] == 10: # reverse direction
             self.forward = not self.forward
             message += ", reversed direction"
@@ -278,19 +286,14 @@ class Inegleit():
 
         self.deck.play_card(card)
         player.remove_card(card)
+        logger.debug("{} played {} >> ".format(player, card) + message)
 
-        if not player.attr["hand"]: # empty list <=> player has no cards left
-            return self.player_finished()
-            
+        if not player.attr["hand"]:
+            return self.player_finished(player)
+
         self.next_player()
 
         response["message"] = message
-
-        if not "inegleit" in response:
-            response["inegleit"] = False
-
-        logger.debug("{} played {}".format(player, card)+str(response))
-
         return response
 
     def test_play_black_card(self, player_id, card_id):
@@ -298,7 +301,7 @@ class Inegleit():
         player = self.players[player_id]
         top_card = self.deck.top_card()
 
-        logger.debug("Request from [{}] to play {} on {}".format(player_id, card, top_card))
+        logger.debug("Request from {} to play {} on {}".format(player, card, top_card))
 
         if not player.has_card(card):
             response = "player does not have that card"
@@ -313,56 +316,52 @@ class Inegleit():
             return response
 
         # ==> move is valid
+        self.can_choose_color = self.get_active_player_id()
+        message = "{} can choose color".format(player)
 
         # if the move is valid although there is a penalty this means
         # the player can raise the penalty for the next player
         if self.penalty["own"]:
             self.penalty["next"] = self.penalty["own"]
             self.penalty["own"] = 0
-            
-        message = "card played"
 
         if card.attr["number"] == 1:
             self.penalty["next"] += 4
             self.penalty["own"] = 0     
-            message += " +{} for the next player".format(self.penalty["next"])
+            message += ", +{} for the next player".format(self.penalty["next"])
             
-        self.can_choose_color = self.get_active_player_id()
-        message += "[{}] can choose color".format(self.can_choose_color)
-        
         self.deck.play_card(card)
         player.remove_card(card)
 
-        if not player.attr["hand"]: # empty list <=> player has no cards left
-            return self.player_finished()
-            
-        self.next_player()
+        if not player.attr["hand"]:
+            return self.player_finished(player)
+
+        logger.info("{} played {}".format(player, card))
+        logger.debug(message)
 
         response["message"] = message
-
-        if not "inegleit" in response:
-            response["inegleit"] = False
-
-        logger.debug("{} played {}".format(player, card)+str(response))
-
         return response
-
-
   
     def event_choose_color(self, player_id, color):
-        if self.can_choose_color != player_id:
-            return {"requestValid": False, "message": "not allowed to choose color"}
-        
+        logger.debug("Request from {} to choose color {}".format(self.players[player_id], color))
+         
         if not player_id == self.get_active_player_id():
-            return {"requestValid": False, "message": "not your turn"}
+            response = {"requestValid": False, "message": "not your turn"}
+            logger.debug(response)
+            return response
 
-        logger.debug("{} chose color {}".format(self.players[player_id], color))
+        if self.can_choose_color != player_id:
+            response = {"requestValid": False, "message": "not allowed to choose color (anymore)"}
+            logger.debug(response)
+            return response
+
+        logger.info("{} chose color {}".format(self.players[player_id], color))
 
         self.chosen_color = color
         self.can_choose_color = False
         self.next_player()
 
-        return {"requestValid": True}
+        return {"requestValid": True, "color": color}
 
     def event_cant_play(self, player_id):
         return self.next_player()
@@ -407,22 +406,16 @@ class Inegleit():
         player = self.players[player_id]
         if len(player.attr["hand"]) == 1:
             player.attr["said_uno"] = True
+            logger.info("{} said UNO".format(self.players[player_id]))
             return {"requestValid": True, "message": "UNO"}
         else: 
             return {"requestValid": False, "message": "you have the wrong number of cards ({})".format(len(player.attr["hand"]))}
 
-    def player_finished(self):
-        player = self.get_active_player()
-        if player.attr["said_uno"]:
-            if not player.attr["penalty"]:
-                return (True, "{} won. Congratulations!".format(player.attr["name"]))
-            else:
-                return (False, "Player has an active penalty of {} cards.".format(player.attr["penalty"]))
-        else:
-            self.penalty["own"] = 2
-            self.penalty["type"] = "uno"
-            return (False, "{} didn't say uno, pick up two cards!".format(player.attr["name"]))    
-    
+    def player_finished(self, player):
+        message = "{} won. Congratulations!".format(player)
+        logger.info(message)
+        return {"requestValid": True, "message": message}
+            
     def reset_game(self, player_id):
         try:
             logger.info("Game reset by {}".format(self.players[player_id]))
@@ -430,8 +423,7 @@ class Inegleit():
             # if somebody else already reset the game there is no key anymore
             logger.warning("Game reset by former id {}".format(player_id))
 
-        if self.game_started:
-            self.__init__(seed=self.seed, testcase=self.testcase)
+        self.__init__(seed=self.seed, testcase=self.testcase)
         
         return {"requestValid": True}
         

@@ -70,8 +70,7 @@ async def play_card(player_id: int, card_id: int):
     """
     response = inegleit.test_play_card(player_id, card_id)
 
-    # check to avoid KeyError, "inegleit" key is only there for valid moves
-    if response["requestValid"] and response["inegleit"]:
+    if response["requestValid"] and "inegleit" in response:
         await sio.emit('inegleit', {"playerName": "Lara"})
         
     return response
@@ -84,7 +83,7 @@ async def play_black_card(player_id: int, card_id: int):
     """
     response = inegleit.test_play_black_card(player_id, card_id)
 
-    if response["requestValid"] and response["inegleit"]:
+    if response["requestValid"] and "inegleit" in response:
         await sio.emit('inegleit', {"playerName": "Test"})
 
     return response
@@ -118,8 +117,13 @@ def cant_play(player_id: int):
     return inegleit.event_cant_play(player_id)
 
 @router.post('/say_uno')
-def say_uno(player_id: int):
-    return inegleit.event_uno(player_id)
+async def say_uno(player_id: int):
+    response = inegleit.event_uno(player_id)
+    
+    if response["requestValid"]:
+        await sio.emit('message', 
+            {"sender": "server", "text": "{} said UNO!".format(player_id)})
+    return response
 
 @router.post('/reset_game')
 def reset_game(player_id: int):
