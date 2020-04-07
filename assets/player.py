@@ -15,7 +15,7 @@ class Player():
             "name": name,
             "id": uid,
             "hand": [],
-            "saidUno": False,      # bool
+            "said_uno": False,      # bool
             "penalty": 0            # int, punishment for not saying uno
         }
         
@@ -27,9 +27,6 @@ class Player():
         
     def remove_card(self, card):
         self.attr["hand"].remove(card)
-    
-    # def toggle_uno(self):
-    #     self.attr["said_uno"] = not self.attr["said_uno"]
 
     def __str__(self):
         return "{} [{}]".format(self.attr["name"], self.attr["id"])

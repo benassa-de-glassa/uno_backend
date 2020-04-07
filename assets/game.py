@@ -234,7 +234,7 @@ class Inegleit():
             return {"requestValid": False, "message": "card not playable"}
 
         if len(player.attr["hand"]) == 1:
-            if player.attr["saidUno"]:
+            if player.attr["said_uno"]:
                 return {"requestValid": True, "playerFinished": player.attr}
             else:
                 player.attr["penalty"] = 2
