@@ -8,11 +8,19 @@ router = APIRouter()
 
 sio = socketio.AsyncServer(
     async_mode='asgi',
-    cors_allowed_origins='*' #','.join(config.ALLOW_ORIGIN)
+    cors_allowed_origins='*',
+    logger=False
 )
 
+# make websocket logger less verbose
+import logging
+logging.getLogger('socketio').setLevel(logging.ERROR)
+logging.getLogger('engineio').setLevel(logging.ERROR)
+logging.getLogger('geventwebsocket.handler').setLevel(logging.ERROR)
+
+
 # main game object
-inegleit = Inegleit(2) # seed
+inegleit = Inegleit(seed=1, testcase=1) # seed
 #inegleit = Inegleit()
     
 @router.post('/add_player')
@@ -31,8 +39,7 @@ def start_game():
     """
     beginnt das Spiel
     """
-    inegleit.start_game()
-    return 200
+    return inegleit.start_game()
 
 @router.post('/deal_cards')
 def deal_cards(player_id: int, n_cards: int):
@@ -70,12 +77,17 @@ async def play_card(player_id: int, card_id: int):
     return response
     
 @router.post('/play_black_card')
-def play_black_card(player_id: int, card_id: int):
+async def play_black_card(player_id: int, card_id: int):
     """
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    return inegleit.event_play_black_card(player_id, card_id)
+    response = inegleit.test_play_black_card(player_id, card_id)
+
+    if response["requestValid"] and response["inegleit"]:
+        await sio.emit('inegleit', {"playerName": "Test"})
+
+    return response
 
 @router.get('/cards')
 def cards(player_id: int):
@@ -110,5 +122,5 @@ def say_uno(player_id: int):
     return inegleit.event_uno(player_id)
 
 @router.post('/reset_game')
-def reset_game():
-    return inegleit.reset_game()
+def reset_game(player_id: int):
+    return inegleit.reset_game(player_id)
