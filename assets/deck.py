@@ -119,6 +119,9 @@ class Deck():
     def play_card(self, card):
         self.pile.append(card)
 
+    def add_to_pile(self, cards):
+        self.pile.extend(cards)
+
     def setup_testcase(self, testcase):
         if testcase == 1:
             card_ids = [104, 105, 11, 12, 13, 14, 15, 16, 17, 106, 107, 77]
