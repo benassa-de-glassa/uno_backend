@@ -54,7 +54,7 @@ messages = []
 message_queue = [
     {
         "id": 1,
-        "sender": "Hedwig und Storch", 
+        "sender": "server", 
         "text": "Viel Spass mit Inegleit Online!",
         "time": datetime.datetime.now().strftime("%H:%M:%S")
     }
@@ -103,7 +103,7 @@ async def trigger_sio_event(request, call_next):
     while message_queue:
         message = message_queue.pop(0)
         messages.append(message)
-        await sio.emit('player-message', 
+        await sio.emit('message', 
         {
             'message': message
         }
