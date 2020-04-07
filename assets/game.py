@@ -98,18 +98,31 @@ class Inegleit():
         if not player_id in self.players.keys():
             logger.debug("player not found")
             return {"requestValid": False, "message": "player not found"}
-        player = self.players[player_id]
-        message = "Removed player: {}".format(player) 
         
+        player = self.players[player_id]
+        
+        if self.game_started:
+            if self.get_active_player_id == player_id:
+                # if the player is active, move to the next player without "baggage"
+                self.penalty["next"] = 0
+                if self.can_choose_color:
+                    self.chosen_color = "red"
+                    self.can_choose_color 
+                self.next_player()
+                
+            # if the next player is the last player, the active index is too
+            # large for the new self.order => decrease it by one
+            if self.get_active_player_id == self.n_players:
+                self.active_index -= 1
+            
+            # add his cards to the pile
+            self.deck.add_to_pile(player.attr["hand"])
+
         del self.players[player_id]
         self.order.remove(player_id)
         self.n_players -= 1
 
-        # if the last player in self.order is active move to the next
-        if self.active_index == self.n_players:
-            self.penalty["next"] = 0
-            self.next_player()
-
+        message = "Removed player: {}".format(player) 
         logger.info(message)
 
         return {"requestValid": True, "message": message}
@@ -183,7 +196,7 @@ class Inegleit():
         # helper method for readability
         return self.get_active_player_id() == player_id
 
-    def test_validate_move(self, player, card, top_card):
+    def validate_move(self, player, card, top_card):
         if not self.player_is_active(player.attr["id"]):
             # checks if the card can be inegleit
             if card.inegleitable(top_card):
@@ -244,7 +257,7 @@ class Inegleit():
 
         return {"requestValid": True}
 
-    def test_play_card(self, player_id, card_id):
+    def play_card(self, player_id, card_id):
         card = self.deck.get_card(card_id)
         player = self.players[player_id]
         top_card = self.deck.top_card()
@@ -256,7 +269,7 @@ class Inegleit():
             logger.warning("Move denied:" + response)
             return {"requestValid": False, "message": response}
        
-        response = self.test_validate_move(player, card, top_card)
+        response = self.validate_move(player, card, top_card)
         
         logger.debug(response)
 
@@ -296,7 +309,7 @@ class Inegleit():
         response["message"] = message
         return response
 
-    def test_play_black_card(self, player_id, card_id):
+    def play_black_card(self, player_id, card_id):
         card = self.deck.get_card(card_id)
         player = self.players[player_id]
         top_card = self.deck.top_card()
@@ -308,7 +321,7 @@ class Inegleit():
             logger.warning("Move denied:" + response)
             return {"requestValid": False, "message": response}
        
-        response = self.test_validate_move(player, card, top_card)
+        response = self.validate_move(player, card, top_card)
         
         logger.debug(response)
 
@@ -414,7 +427,7 @@ class Inegleit():
     def player_finished(self, player):
         message = "{} won. Congratulations!".format(player)
         logger.info(message)
-        return {"requestValid": True, "message": message}
+        return {"requestValid": True, "playerWon": player.attr["name"], "message": message}
             
     def reset_game(self, player_id):
         try:
@@ -425,8 +438,7 @@ class Inegleit():
 
         self.__init__(seed=self.seed, testcase=self.testcase)
         
-        return {"requestValid": True}
-        
+        return {"requestValid": True}        
 
     # def to_json(self, filename):
     #     game = {
