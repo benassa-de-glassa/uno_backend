@@ -22,8 +22,16 @@ logger = logging.getLogger("backend")
 
 
 # main game object
-inegleit = Inegleit(seed=1, testcase=1) # seed
+inegleit = Inegleit() #(seed=1, testcase=1) # seed
 #inegleit = Inegleit()
+
+async def emit_server_message(message):
+    await sio.emit('message', 
+            { 
+                "message": { "sender": "server", "text": message }
+            }
+        )
+
     
 @router.post('/add_player')
 def add_player(player_name: str):
@@ -70,10 +78,13 @@ async def play_card(player_id: int, card_id: int):
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    response = inegleit.test_play_card(player_id, card_id)
+    response = inegleit.play_card(player_id, card_id)
 
     if response["requestValid"] and "inegleit" in response:
-        await sio.emit('inegleit', {"playerName": "Lara"})
+        await sio.emit('inegleit', {"playerName": response["inegleit"]})
+
+    if response["requestValid"] and "playerWon" in response:
+        await emit_server_message("{} won. Congratulations!".format(response["playerWon"]))
         
     return response
     
@@ -83,7 +94,7 @@ async def play_black_card(player_id: int, card_id: int):
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    response = inegleit.test_play_black_card(player_id, card_id)
+    response = inegleit.play_black_card(player_id, card_id)
 
     if response["requestValid"] and "inegleit" in response:
         await sio.emit('inegleit', {"playerName": "Test"})
@@ -121,23 +132,11 @@ def cant_play(player_id: int):
 @router.post('/say_uno')
 async def say_uno(player_id: int):
     response = inegleit.event_uno(player_id)
-    
     if response["requestValid"]:
-        logger.debug("emitted server message: " + "{} said UNO!".format(player_id))
-        await sio.emit('message', 
-            { 
-                "message": { "sender": "server", "text": "{} said UNO!".format(player_id)}
-            }
-        )
-
+        await emit_server_message("{} said UNO!".format(player_id))
     return response
 
 @router.post('/reset_game')
 async def reset_game(player_id: int):
-    logger.debug("emitted server message: Game reset")
-    await sio.emit('message', 
-        {
-            "message" : {"sender": "server", "text": "Game reset", "time":"0"}
-        }
-    )
+    await emit_server_message("Game reset")
     return inegleit.reset_game(player_id)
