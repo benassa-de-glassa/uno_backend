@@ -25,7 +25,7 @@ class Deck():
     play_card(i)    : attemts to play the Card with index i, returns True if it
                       is possible and adds it to the pile, and False otherwise
     """
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, testcase=None):
         if seed:
             random.seed(seed)
         self.N = 0 # anzahl karten
@@ -72,10 +72,14 @@ class Deck():
         # apply random permutation (possibility to select a seed)
         self.shuffle_cards()
 
+        # selected card distribution
+        if testcase:
+            self.setup_testcase(testcase)
+
     def place_starting_card(self):
         # places the starting card:
         self.pile.append(self.current_cards.pop())
-
+        
         # avoids having a black starting card
         if self.top_card().attr["color"] == "black":
             self.place_starting_card()
@@ -112,6 +116,16 @@ class Deck():
             'pile': [card.to_json() for card in self.pile]
         }
 
+    def play_card(self, card):
+        self.pile.append(card)
+
+    def setup_testcase(self, testcase):
+        if testcase == 1:
+            card_ids = [104, 105, 11, 12, 13, 14, 15, 16, 17, 106, 107, 77]
+            cards = [self.get_card(i) for i in card_ids]
+            print("TEST / Added " + str([str(card) for card in cards]) + " to deck.")
+            self.current_cards.extend(cards)
+
     # def from_json(self, deck):
     #     self.allcards = []
     #     self.pile = []
@@ -120,8 +134,6 @@ class Deck():
     #     for card in deck['pile']:
     #         self.pile.append( Card(card['color'], card['number'], card['uid']))
    
-    def play_card(self, card):
-        self.pile.append(card)
 
 class Card():
     def __init__(self, color, number, id):
