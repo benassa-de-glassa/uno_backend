@@ -14,9 +14,10 @@ class Player():
         self.attr = {
             "name": name,
             "id": uid,
-            "hand": [],
-            "said_uno": False,      # bool
-            "penalty": 0            # int, punishment for not saying uno
+            "hand": [],         # list of cards
+            "said_uno": False,      
+            "penalty": 0,       # punishment for not saying uno
+            "finished": False, 
         }
         
     def add_cards(self, cards):
