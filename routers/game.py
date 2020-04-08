@@ -97,7 +97,7 @@ async def play_black_card(player_id: int, card_id: int):
     response = inegleit.play_black_card(player_id, card_id)
 
     if response["requestValid"] and "inegleit" in response:
-        await sio.emit('inegleit', {"playerName": "Test"})
+        await sio.emit('inegleit', {"playerName": response["inegleit"]})
 
     return response
 

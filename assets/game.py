@@ -425,6 +425,9 @@ class Inegleit():
         self.next_player()
 
         response["message"] = message
+        if "inegleit" in response:
+            # change dict value to the player name for display
+            response["inegleit"] = player.attr["name"]
         return response
 
     def play_black_card(self, player_id, card_id):
