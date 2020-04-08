@@ -279,9 +279,9 @@ class Inegleit():
                             "inegleit": True,
                             "raisePenalty": True}
 
-                if self.penalty["next"]
+                if (self.penalty["next"]
                   and card.attr["color"] == "black"
-                  and card.attr["number"] == 1:
+                  and card.attr["number"] == 1):
                     # this is the case if a player is currently choosing
                     # a card after playing a +4 while a second player
                     # inegleits another +4
