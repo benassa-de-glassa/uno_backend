@@ -193,14 +193,14 @@ class Inegleit():
 
         # move to the next player while also deleting the finished player
         # from the order list
-        current_player_finished = self.get_active_player().attr["finished"]
+        current_player = self.get_active_player()
 
         # 2*bool-1 is 1 if true and -1 if false #maths
         new_index = (self.active_index + (2*self.forward-1)) % self.n_players
         self.active_index = new_index
 
-        if current_player_finished:
-            self.order.remove(player_id)
+        if current_player.attr["finished"]:
+            self.order.remove(current_player.attr["id"])
             self.n_players -= 1
             # supposed to move to the right next player
             self.active_index -= self.forward
@@ -209,10 +209,7 @@ class Inegleit():
             self.get_active_player().attr["name"],
             self.penalty["own"]
         )
-
         logger.info(message)
-
-        # return message
 
     def get_active_player_id(self):
         if not self.n_players:  # no players have joined
@@ -324,9 +321,9 @@ class Inegleit():
 
         # checks if the card can be played, argument chosen_color is only
         # relevant if a black card lies on top
-        if top_card.attr["color"] == "black"
-          and not card.attr["color"] == "black":
-               if card.attr["color"] == self.chosen_color:
+        if (top_card.attr["color"] == "black"
+          and not card.attr["color"] == "black"):
+                if card.attr["color"] == self.chosen_color:
                     # reset color choice to empty
                     self.chosen_color = ""
                     return {"requestValid": True}
@@ -393,7 +390,7 @@ class Inegleit():
         if card.attr["number"] == 12:  # a +2 card
             if self.penalty["own"]:
                 if not response["raisePenalty"]:
-                logger.critical("The move was deemed valid although \
+                    logger.critical("The move was deemed valid although \
                                 there is a penalty that is not raised!")
 
                 # makes the "own" penalty the basis for raising the penalty
@@ -530,7 +527,8 @@ class Inegleit():
         return {"requestValid": True, "color": color}
 
     def event_cant_play(self, player_id):
-        return self.next_player()
+        self.next_player()
+        return {"requestValid": True}
 
     def event_pickup_card(self, player_id):
         """ 
