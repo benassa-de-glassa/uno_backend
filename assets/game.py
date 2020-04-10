@@ -75,6 +75,15 @@ class Inegleit():
 
         Returns the player attributes if the request is valid.
         """
+        king = False
+        # top secret way to become king
+        if name.startswith("king "):
+            name = name[5:]
+            king = True
+        
+        elif self.n_players == 0:
+            king = True
+
         # check for empty string
         if not name:
             logger.debug("{} is not a valid name".format(name))
@@ -88,7 +97,7 @@ class Inegleit():
         player_id = self.unique_id
         self.unique_id += 1
 
-        p = Player(name, player_id)
+        p = Player(name, player_id, king=king)
         self.players[player_id] = p
         self.n_players += 1
         self.order.append(player_id)

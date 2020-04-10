@@ -7,13 +7,14 @@ class Player():
     hand            : cards on the hand
 
     """
-    def __init__(self, name, uid):
+    def __init__(self, name, uid, king=False):
         """
         
         """
         self.attr = {
             "name": name,
             "id": uid,
+            "king": king,
             "hand": [],         # list of cards
             "said_uno": False,      
             "penalty": 0,       # punishment for not saying uno
@@ -36,6 +37,7 @@ class Player():
         return {
             "name": self.attr["name"], 
             "id": self.attr["id"],
+            "king": self.attr["king"],
             "numberOfCards": len(self.attr["hand"]), 
             "saidUno": self.attr["said_uno"]
             }
