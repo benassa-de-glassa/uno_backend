@@ -114,6 +114,9 @@ async def play_card(player_id: int, card_id: int):
     """
     response = inegleit.play_card(player_id, card_id)
 
+    if not response["requestValid"] and "missedUno" in response:
+        await emit_server_message(f"{response['missedUno']} failed to say Uno, you know the rules..")
+
     if response["requestValid"] and "inegleit" in response:
         await sio.emit('inegleit', {"playerName": response["inegleit"]})
 

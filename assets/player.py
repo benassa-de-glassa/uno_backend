@@ -42,4 +42,5 @@ class Player():
                 "numberOfCards": len(self.attr["hand"]), 
                 "saidUno": self.attr["said_uno"],
                 "gotInitialCards": self.attr["has_received_initial_cards"],
+                "finished": self.attr["finished"],
             }
