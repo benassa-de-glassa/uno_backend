@@ -576,7 +576,9 @@ class Inegleit():
         if len(player.attr["hand"]) == 1:
             player.attr["said_uno"] = True
             logger.info("{} said UNO".format(self.players[player_id]))
-            return {"requestValid": True, "message": "UNO"}
+            return {"requestValid": True, 
+                    "message": "UNO", 
+                    "name": player.attr["name"]}
         else:
             return {"requestValid": False, "message": "you have the wrong number of cards ({})".format(len(player.attr["hand"]))}
 

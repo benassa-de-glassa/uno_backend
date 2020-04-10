@@ -1,6 +1,7 @@
-from fastapi import APIRouter, WebSocket
+import logging
 
 import socketio
+from fastapi import APIRouter, WebSocket
 
 from assets.game import Inegleit
 
@@ -13,7 +14,7 @@ sio = socketio.AsyncServer(
 )
 
 # make websocket logger less verbose
-import logging
+
 logging.getLogger('socketio').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
 logging.getLogger('geventwebsocket.handler').setLevel(logging.ERROR)
@@ -99,6 +100,9 @@ async def play_black_card(player_id: int, card_id: int):
     if response["requestValid"] and "inegleit" in response:
         await sio.emit('inegleit', {"playerName": response["inegleit"]})
 
+    if response["requestValid"] and "playerWon" in response:
+        await emit_server_message("{} won. Congratulations!".format(response["playerWon"]))
+
     return response
 
 @router.get('/cards')
@@ -133,7 +137,7 @@ def cant_play(player_id: int):
 async def say_uno(player_id: int):
     response = inegleit.event_uno(player_id)
     if response["requestValid"]:
-        await emit_server_message("{} said UNO!".format(player_id))
+        await emit_server_message(f"{response['name']} said UNO!")
     return response
 
 @router.post('/reset_game')
