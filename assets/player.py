@@ -7,7 +7,7 @@ class Player():
     hand            : cards on the hand
 
     """
-    def __init__(self, name, uid):
+    def __init__(self, name, uid, king=False):
         """
         
         """
@@ -18,6 +18,8 @@ class Player():
             "said_uno": False,      # bool
             "penalty": 0,           # int, punishment for not saying uno
             "has_received_initial_cards": False,
+            "king": king,
+            "finished": False, 
         }
         
     def add_cards(self, cards):
@@ -36,6 +38,7 @@ class Player():
         return {
                 "name": self.attr["name"], 
                 "id": self.attr["id"],
+                "king": self.attr["king"],
                 "numberOfCards": len(self.attr["hand"]), 
                 "saidUno": self.attr["said_uno"],
                 "gotInitialCards": self.attr["has_received_initial_cards"],

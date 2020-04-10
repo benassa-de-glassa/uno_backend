@@ -85,7 +85,8 @@ async def trigger_sio_event(request, call_next):
 
     await sio.emit('gamestate',
         {
-            'penalty': inegleit.penalty["own"],
+            'penalty': inegleit.penalty["own"] 
+                       + inegleit.get_active_player().attr["penalty"],
             'colorChosen': inegleit.chosen_color != "",
             'chosenColor': inegleit.chosen_color,
             'activePlayerName': inegleit.get_active_player().attr["name"],
@@ -112,15 +113,18 @@ async def trigger_sio_event(request, call_next):
     return response
 
 @sio.on('connect')
-async def connect(sid, environ):
+async def test_connect(sid, environ):
+    logger.debug(f"Socket id {sid} connected")
     print('connect', sid)
 
 @sio.on('disconnect request')
 async def disconnect_request(sid):
+    logger.debug(f"Socket id {sid} disconnected")
     await sio.disconnect(sid)
 
 @sio.on('disconnect')
 def test_disconnect(sid):
+    logger.debug(f"Client socket id {sid} disconnected")
     print('Client disconnected')
 
 if __name__ == "__main__":

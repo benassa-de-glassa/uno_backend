@@ -1,6 +1,8 @@
-from fastapi import APIRouter, WebSocket
+import logging
+import datetime
 
 import socketio
+from fastapi import APIRouter, WebSocket
 
 from assets.game import Inegleit
 
@@ -13,7 +15,7 @@ sio = socketio.AsyncServer(
 )
 
 # make websocket logger less verbose
-import logging
+
 logging.getLogger('socketio').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
 logging.getLogger('geventwebsocket.handler').setLevel(logging.ERROR)
@@ -27,14 +29,26 @@ inegleit = Inegleit()
 async def emit_server_message(message):
     await sio.emit('message', 
             { 
-                "message": { "sender": "server", "text": message }
+                "message": { "sender": "server", 
+                             "text": message,
+                             "time": datetime.datetime.now().strftime("%H:%M:%S") }
             }
         )
 
+async def emit_player_state(player_id, message):
+    await sio.emit('playerstate',
+        {
+            'player_id': player_id,
+            'message': message
+        }
+    )
     
 @router.post('/add_player')
-def add_player(player_name: str):
-    return inegleit.add_player(player_name)
+async def add_player(player_name: str):
+    response = inegleit.add_player(player_name)
+    if response["requestValid"]:
+        await emit_server_message(f"{response['player']['name']} joined.")
+    return response
 
 @router.post('/remove_player')
 def remove_player(player_id: int):
@@ -49,6 +63,20 @@ def add_player(player_id: int, player_name: str):
         if player_id == player['id'] and player_name == player['name']:
             return player
     return False
+    
+@router.post('/kick_player')
+async def kick_player(player_id: int, from_id: int):
+    """
+    Der Spieler mit der ID from_id entfernt den Spieler mit id player_id 
+    aus dem Spiel.
+    """
+    response = inegleit.remove_player(player_id)
+    if response["requestValid"]:
+        await emit_server_message(f"{response['name']} has been (forcibly) "
+            f"removed by {inegleit.players[from_id].attr['name']}!")
+        await emit_player_state(player_id, "kicked")
+
+    return response
 
 @router.post('/start_game')
 def start_game():
@@ -103,7 +131,10 @@ async def play_black_card(player_id: int, card_id: int):
     response = inegleit.play_black_card(player_id, card_id)
 
     if response["requestValid"] and "inegleit" in response:
-        await sio.emit('inegleit', {"playerName": "Test"})
+        await sio.emit('inegleit', {"playerName": response["inegleit"]})
+
+    if response["requestValid"] and "playerWon" in response:
+        await emit_server_message("{} won. Congratulations!".format(response["playerWon"]))
 
     return response
 
@@ -139,10 +170,11 @@ def cant_play(player_id: int):
 async def say_uno(player_id: int):
     response = inegleit.event_uno(player_id)
     if response["requestValid"]:
-        await emit_server_message("{} said UNO!".format(player_id))
+        await emit_server_message(f"{response['name']} said UNO!")
     return response
 
 @router.post('/reset_game')
 async def reset_game(player_id: int):
     await emit_server_message("Game reset")
+    await emit_player_state(-1, "kicked")
     return inegleit.reset_game(player_id)
