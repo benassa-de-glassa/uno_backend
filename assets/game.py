@@ -549,19 +549,34 @@ class Inegleit():
         if player_id != self.get_active_player_id():
             return {"requestValid": False, "message": "not your turn"}
 
+        player = self.players[player_id]
+
+        response = {} # empty dict that is now filled
+
         message = "picked up card"
         # frontend needs to know if the card was picked up due to penalty or not
         reason_is_penalty = False
 
+        # due to +2 or +4 cards
         if self.penalty["own"]:
             reason_is_penalty = True
             self.penalty["own"] -= 1
             message += ", take {} more".format(self.penalty["own"])
-        elif self.players[player_id].attr["penalty"]:
+
+        # due to not saying UNO
+        elif player.attr["penalty"]:
             reason_is_penalty = True
-            self.players[player_id].attr["penalty"] -= 1
+            player.attr["penalty"] -= 1
             message += ", take {} more".format(
-                self.players[player_id].attr["penalty"])
+                player.attr["penalty"])
+
+        # punish player for not saying UNO even though he can't finish
+        elif len(player.attr["hand"]) == 1 and not player.attr["said_uno"]:
+            reason_is_penalty = True
+            # one card was already picked up thus 1 remaining
+            player.attr["penalty"] = 1
+            message += f", take {player.attr['penalty']} more"
+            response["missedUno"] = player.attr["name"] 
 
         elif not self.card_picked_up:
             self.card_picked_up = True
@@ -569,12 +584,16 @@ class Inegleit():
             return {"requestValid": False, "message": "you already have enough cards"}
 
         card = self.deck.deal_cards(1)  # returns a list of length 1
-        self.players[player_id].add_cards(card)
-        self.players[player_id].attr["said_uno"] = False
+        player.add_cards(card)
+        player.attr["said_uno"] = False
 
-        logger.debug("{} picks up {}".format(self.players[player_id], card[0]))
+        logger.debug(f"{player} picks up {card[0]}")
 
-        return {"requestValid": True, "reasonIsPenalty": reason_is_penalty, "message": message}
+        response["requestValid"] = True
+        response["reasonIsPenalty"] = reason_is_penalty
+        response["message"] = message
+
+        return response
 
     def event_uno(self, player_id):
         player = self.players[player_id]
