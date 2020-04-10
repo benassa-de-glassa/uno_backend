@@ -209,7 +209,10 @@ class Inegleit():
         if self.get_active_player().attr["finished"]:
             self.order.pop(self.active_index)
             self.n_players -= 1
-            self.active_index = (self.active_index - (not self.forward)) % self.n_players
+            if self.n_players:
+                self.active_index = (self.active_index - (not self.forward)) % self.n_players
+            else:
+                logger.info("Game finished")
             
         else:
             # 2*bool-1 is 1 if true and -1 if false #maths
