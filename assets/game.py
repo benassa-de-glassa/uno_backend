@@ -145,7 +145,7 @@ class Inegleit():
         message = "Removed player: {}".format(player)
         logger.info(message)
 
-        return {"requestValid": True, "message": message}
+        return {"requestValid": True, "message": message, "name": player.attr["name"]}
 
     def deal_cards(self, player_id, n):
         """
