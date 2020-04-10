@@ -67,6 +67,9 @@ class Inegleit():
         # picked up a card
         self.card_picked_up = False
 
+        # players that reached zero cards
+        self.winners = []
+
     def add_player(self, name):
         """
         Answers requests to add a player.
@@ -123,14 +126,12 @@ class Inegleit():
         if self.game_started:
             # Handle special situations
             if self.get_active_player_id() == player_id:
-                print("removed player was active")
                 # if the player is active, move to the next player without "baggage"
                 self.penalty["next"] = 0
                 if self.can_choose_color:
                     self.chosen_color = "red"
                     self.can_choose_color = False
                 self.next_player()
-                print("now active player id:")
 
             # add his cards to the pile
             self.deck.add_to_pile(player.attr["hand"])
@@ -140,7 +141,9 @@ class Inegleit():
         self.n_players -= 1
 
         # the active index could be out of bounds
-        self.active_index %= self.n_players
+        if self.n_players:
+            self.active_index %= self.n_players
+
 
         message = "Removed player: {}".format(player)
         logger.info(message)
@@ -193,6 +196,9 @@ class Inegleit():
         resetting indicators and handling the penalties for the
         next player.
         """
+        if not self.n_players:
+            return
+
         # resets the indicators
         self.card_picked_up = False
 
@@ -200,19 +206,9 @@ class Inegleit():
         self.penalty["own"] = self.penalty["next"]
         self.penalty["next"] = 0
 
-        # move to the next player while also deleting the finished player
-        # from the order list
-        current_player = self.get_active_player()
-
         # 2*bool-1 is 1 if true and -1 if false #maths
         new_index = (self.active_index + (2*self.forward-1)) % self.n_players
         self.active_index = new_index
-
-        if current_player.attr["finished"]:
-            self.order.remove(current_player.attr["id"])
-            self.n_players -= 1
-            # supposed to move to the right next player
-            self.active_index -= self.forward
 
         message = "{}'s turn. {} penalty cards".format(
             self.get_active_player().attr["name"],
@@ -354,7 +350,7 @@ class Inegleit():
                 message = "{} didn't say uno, has to pick up two cards!".format(
                     player)
                 logger.info(message)
-                return {"requestValid": False, "message": message}
+                return {"requestValid": False, "message": message, "missedUno": player.attr["name"]}
 
         return {"requestValid": True}
 
@@ -592,13 +588,26 @@ class Inegleit():
             return {"requestValid": False, "message": "you have the wrong number of cards ({})".format(len(player.attr["hand"]))}
 
     def player_finished(self, player):
-        message = "{} won. Congratulations!".format(player)
+        if not self.winners:
+            message = "{} won. Congratulations!".format(player)
+        else:
+            message = f"{player} came in {len(self.winners)}. place. Well done!"
+
         logger.info(message)
 
         player.attr["finished"] = True
+        self.winners.append(player.attr["id"])
+
+        self.order.remove(player.attr["id"])
+        self.n_players -= 1
+
+        # still let the winner choose the color if he finishes with a black card
+        if not self.can_choose_color:
+            self.next_player()
 
         return {"requestValid": True,
                 "playerWon": player.attr["name"],
+                "ranking": len(self.winners),
                 "message": message}
 
     def reset_game(self, player_id):
