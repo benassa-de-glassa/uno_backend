@@ -19,7 +19,7 @@ class Inegleit():
     routers to the same game instance which verifies them, e.g.
     play_card().
     The return value is always a dict containing always the key
-    {"requestValid": (bool)} to indicate if for example after a request
+    {"requestValid": (bool)} to indicate if, for example after a request
     to play a card, the card has actually been played.  If the request
     is not valid, there isa {"message": (str)} keyword explaining the
     reason for the denied request.
