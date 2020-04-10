@@ -19,6 +19,7 @@ class Player():
             "said_uno": False,      
             "penalty": 0,       # punishment for not saying uno
             "finished": False, 
+            "rank": 0,
         }
         
     def add_cards(self, cards):
@@ -41,4 +42,5 @@ class Player():
             "numberOfCards": len(self.attr["hand"]), 
             "saidUno": self.attr["said_uno"],
             "finished": self.attr["finished"],
+            "rank": self.attr["rank"]
             }

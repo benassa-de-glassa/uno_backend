@@ -19,7 +19,7 @@ class Inegleit():
     The return value is always a dict containing always the key
     {"requestValid": (bool)} to indicate if, for example after a request
     to play a card, the card has actually been played.  If the request
-    is not valid, there isa {"message": (str)} keyword explaining the
+    is not valid, there is a {"message": (str)} keyword explaining the
     reason for the denied request.
     """
 
@@ -621,8 +621,10 @@ class Inegleit():
 
         logger.info(message)
 
-        player.attr["finished"] = True
         self.winners.append(player.attr["id"])
+
+        player.attr["finished"] = True
+        player.attr["rank"] = len(self.winners)
 
         # still let the winner choose the color if he finishes with a black card
         if not self.can_choose_color:
