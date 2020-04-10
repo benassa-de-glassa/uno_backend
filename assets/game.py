@@ -122,18 +122,15 @@ class Inegleit():
 
         if self.game_started:
             # Handle special situations
-            if self.get_active_player_id == player_id:
+            if self.get_active_player_id() == player_id:
+                print("removed player was active")
                 # if the player is active, move to the next player without "baggage"
                 self.penalty["next"] = 0
                 if self.can_choose_color:
                     self.chosen_color = "red"
-                    self.can_choose_color
+                    self.can_choose_color = False
                 self.next_player()
-
-            # if the next player is the last player, the active index is too
-            # large for the new self.order => decrease it by one
-            if self.get_active_player_id == self.n_players:
-                self.active_index -= 1
+                print("now active player id:")
 
             # add his cards to the pile
             self.deck.add_to_pile(player.attr["hand"])
@@ -141,6 +138,9 @@ class Inegleit():
         del self.players[player_id]
         self.order.remove(player_id)
         self.n_players -= 1
+
+        # the active index could be out of bounds
+        self.active_index %= self.n_players
 
         message = "Removed player: {}".format(player)
         logger.info(message)
