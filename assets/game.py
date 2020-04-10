@@ -137,7 +137,8 @@ class Inegleit():
         self.players[player_id].add_cards(cards)
 
         logger.info("Dealt {} cards to player {} [{}]".format(n, self.players[player_id].attr["name"], player_id))
-        
+        if n == 7:
+            self.players[player_id].attr['has_received_initial_cards'] = True
         return [card.attr for card in cards]
 
     def start_game(self):
@@ -405,6 +406,7 @@ class Inegleit():
         elif not self.card_picked_up:
             self.card_picked_up = True
         else:
+            self.next_player()
             return {"requestValid": False, "message": "you already have enough cards"}
 
         card = self.deck.deal_cards(1) # returns a list of length 1

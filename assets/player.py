@@ -16,7 +16,8 @@ class Player():
             "id": uid,
             "hand": [],
             "said_uno": False,      # bool
-            "penalty": 0            # int, punishment for not saying uno
+            "penalty": 0,           # int, punishment for not saying uno
+            "has_received_initial_cards": False,
         }
         
     def add_cards(self, cards):
@@ -33,8 +34,9 @@ class Player():
 
     def to_json(self):
         return {
-            "name": self.attr["name"], 
-            "id": self.attr["id"],
-            "numberOfCards": len(self.attr["hand"]), 
-            "saidUno": self.attr["said_uno"]
+                "name": self.attr["name"], 
+                "id": self.attr["id"],
+                "numberOfCards": len(self.attr["hand"]), 
+                "saidUno": self.attr["said_uno"],
+                "gotInitialCards": self.attr["has_received_initial_cards"],
             }

@@ -22,8 +22,7 @@ logger = logging.getLogger("backend")
 
 
 # main game object
-inegleit = Inegleit() #(seed=1, testcase=1) # seed
-#inegleit = Inegleit()
+inegleit = Inegleit() 
 
 async def emit_server_message(message):
     await sio.emit('message', 
@@ -48,7 +47,7 @@ def remove_player(player_id: int):
 def add_player(player_id: int, player_name: str):
     for player in inegleit.get_all_players():
         if player_id == player['id'] and player_name == player['name']:
-            return True
+            return player
     return False
 
 @router.post('/start_game')
