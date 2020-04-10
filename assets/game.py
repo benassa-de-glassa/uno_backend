@@ -1,7 +1,6 @@
 import logging
 
 import json
-import numpy as np
 
 from .player import Player
 from .deck import Deck
