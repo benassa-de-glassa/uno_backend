@@ -127,6 +127,9 @@ async def play_black_card(player_id: int, card_id: int):
     """
     response = inegleit.play_black_card(player_id, card_id)
 
+    if not response["requestValid"] and "missedUno" in response:
+        await emit_server_message(f"{response['missedUno']} failed to say Uno, you know the rules..")
+
     if response["requestValid"] and "inegleit" in response:
         await sio.emit('inegleit', {"playerName": response["inegleit"]})
 
@@ -148,12 +151,17 @@ def choose_color(player_id:int, color: str):
     return inegleit.event_choose_color(player_id, color)
 
 @router.post('/pickup_card')
-def pickup_card(player_id: int):
+async def pickup_card(player_id: int):
     """
     gibt zurück ob eine zu spielende Karte erlaubt ist
     und spielt diese im backend
     """
-    return inegleit.event_pickup_card(player_id)
+    response = inegleit.event_pickup_card(player_id)
+
+    if response["requestValid"] and "missedUno" in response:
+        await emit_server_message(f"{response['missedUno']} failed to say Uno, you know the rules..")
+    
+    return response
 
 @router.post('/cant_play')
 def cant_play(player_id: int):
