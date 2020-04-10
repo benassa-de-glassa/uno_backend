@@ -11,7 +11,6 @@ DEBUG = True
 
 logger = logging.getLogger("backend")
 
-
 class Inegleit():
     """
     Uno game instance handling the game logic, the players, and the
