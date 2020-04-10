@@ -114,7 +114,7 @@ async def play_card(player_id: int, card_id: int):
     if response["requestValid"] and "inegleit" in response:
         await sio.emit('inegleit', {"playerName": response["inegleit"]})
 
-    if response["requestValid"] and "playerWon" in response:
+    if response["requestValid"] and "playerFinished" in response:
         if response["rank"] == 1:
             await emit_server_message("{} won. Congratulations!".format(response["playerFinished"]))
         else:
