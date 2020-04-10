@@ -206,9 +206,15 @@ class Inegleit():
         self.penalty["own"] = self.penalty["next"]
         self.penalty["next"] = 0
 
-        # 2*bool-1 is 1 if true and -1 if false #maths
-        new_index = (self.active_index + (2*self.forward-1)) % self.n_players
-        self.active_index = new_index
+        if self.get_active_player().attr["finished"]:
+            self.order.pop(self.active_index)
+            self.n_players -= 1
+            self.active_index = (self.active_index - (not self.forward)) % self.n_players
+            
+        else:
+            # 2*bool-1 is 1 if true and -1 if false #maths
+            new_index = (self.active_index + (2*self.forward-1)) % self.n_players
+            self.active_index = new_index
 
         message = "{}'s turn. {} penalty cards".format(
             self.get_active_player().attr["name"],
@@ -549,19 +555,34 @@ class Inegleit():
         if player_id != self.get_active_player_id():
             return {"requestValid": False, "message": "not your turn"}
 
+        player = self.players[player_id]
+
+        response = {} # empty dict that is now filled
+
         message = "picked up card"
         # frontend needs to know if the card was picked up due to penalty or not
         reason_is_penalty = False
 
+        # due to +2 or +4 cards
         if self.penalty["own"]:
             reason_is_penalty = True
             self.penalty["own"] -= 1
             message += ", take {} more".format(self.penalty["own"])
-        elif self.players[player_id].attr["penalty"]:
+
+        # due to not saying UNO
+        elif player.attr["penalty"]:
             reason_is_penalty = True
-            self.players[player_id].attr["penalty"] -= 1
+            player.attr["penalty"] -= 1
             message += ", take {} more".format(
-                self.players[player_id].attr["penalty"])
+                player.attr["penalty"])
+
+        # punish player for not saying UNO even though he can't finish
+        elif len(player.attr["hand"]) == 1 and not player.attr["said_uno"]:
+            reason_is_penalty = True
+            # one card was already picked up thus 1 remaining
+            player.attr["penalty"] = 1
+            message += f", take {player.attr['penalty']} more"
+            response["missedUno"] = player.attr["name"] 
 
         elif not self.card_picked_up:
             self.card_picked_up = True
@@ -570,12 +591,16 @@ class Inegleit():
             return {"requestValid": False, "message": "you already have enough cards"}
 
         card = self.deck.deal_cards(1)  # returns a list of length 1
-        self.players[player_id].add_cards(card)
-        self.players[player_id].attr["said_uno"] = False
+        player.add_cards(card)
+        player.attr["said_uno"] = False
 
-        logger.debug("{} picks up {}".format(self.players[player_id], card[0]))
+        logger.debug(f"{player} picks up {card[0]}")
 
-        return {"requestValid": True, "reasonIsPenalty": reason_is_penalty, "message": message}
+        response["requestValid"] = True
+        response["reasonIsPenalty"] = reason_is_penalty
+        response["message"] = message
+
+        return response
 
     def event_uno(self, player_id):
         player = self.players[player_id]
@@ -599,16 +624,13 @@ class Inegleit():
         player.attr["finished"] = True
         self.winners.append(player.attr["id"])
 
-        self.order.remove(player.attr["id"])
-        self.n_players -= 1
-
         # still let the winner choose the color if he finishes with a black card
         if not self.can_choose_color:
             self.next_player()
 
         return {"requestValid": True,
-                "playerWon": player.attr["name"],
-                "ranking": len(self.winners),
+                "playerFinished": player.attr["name"],
+                "rank": len(self.winners),
                 "message": message}
 
     def reset_game(self, player_id):
