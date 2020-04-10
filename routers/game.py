@@ -1,4 +1,5 @@
 import logging
+import datetime
 
 import socketio
 from fastapi import APIRouter, WebSocket
@@ -29,14 +30,26 @@ inegleit = Inegleit() #(seed=1, testcase=1) # seed
 async def emit_server_message(message):
     await sio.emit('message', 
             { 
-                "message": { "sender": "server", "text": message }
+                "message": { "sender": "server", 
+                             "text": message,
+                             "time": datetime.datetime.now().strftime("%H:%M:%S") }
             }
         )
 
+async def emit_player_state(player_id, message):
+    await sio.emit('playerstate',
+        {
+            'player_id': player_id,
+            'message': message
+        }
+    )
     
 @router.post('/add_player')
-def add_player(player_name: str):
-    return inegleit.add_player(player_name)
+async def add_player(player_name: str):
+    response = inegleit.add_player(player_name)
+    if response["requestValid"]:
+        await emit_server_message(f"{response['player']['name']} joined.")
+    return response
 
 @router.post('/remove_player')
 def remove_player(player_id: int):
@@ -44,6 +57,20 @@ def remove_player(player_id: int):
     Entfernt einen Spieler aus dem Spiel
     """
     return inegleit.remove_player(player_id)
+
+@router.post('/kick_player')
+async def kick_player(player_id: int, from_id: int):
+    """
+    Der Spieler mit der ID from_id entfernt den Spieler mit id player_id 
+    aus dem Spiel.
+    """
+    response = inegleit.remove_player(player_id)
+    if response["requestValid"]:
+        await emit_server_message(f"{response['name']} has been (forcibly) "
+            f"removed by {inegleit.players[from_id].attr['name']}!")
+        await emit_player_state(player_id, "kicked")
+
+    return response
 
 @router.post('/start_game')
 def start_game():
@@ -143,4 +170,5 @@ async def say_uno(player_id: int):
 @router.post('/reset_game')
 async def reset_game(player_id: int):
     await emit_server_message("Game reset")
+    await emit_player_state(-1, "kicked")
     return inegleit.reset_game(player_id)
