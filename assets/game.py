@@ -206,9 +206,15 @@ class Inegleit():
         self.penalty["own"] = self.penalty["next"]
         self.penalty["next"] = 0
 
-        # 2*bool-1 is 1 if true and -1 if false #maths
-        new_index = (self.active_index + (2*self.forward-1)) % self.n_players
-        self.active_index = new_index
+        if self.get_active_player().attr["finished"]:
+            self.order.pop(self.active_index)
+            self.n_players -= 1
+            self.active_index = (self.active_index - (not self.forward)) % self.n_players
+            
+        else:
+            # 2*bool-1 is 1 if true and -1 if false #maths
+            new_index = (self.active_index + (2*self.forward-1)) % self.n_players
+            self.active_index = new_index
 
         message = "{}'s turn. {} penalty cards".format(
             self.get_active_player().attr["name"],
@@ -617,16 +623,13 @@ class Inegleit():
         player.attr["finished"] = True
         self.winners.append(player.attr["id"])
 
-        self.order.remove(player.attr["id"])
-        self.n_players -= 1
-
         # still let the winner choose the color if he finishes with a black card
         if not self.can_choose_color:
             self.next_player()
 
         return {"requestValid": True,
-                "playerWon": player.attr["name"],
-                "ranking": len(self.winners),
+                "playerFinished": player.attr["name"],
+                "rank": len(self.winners),
                 "message": message}
 
     def reset_game(self, player_id):

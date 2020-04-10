@@ -115,8 +115,16 @@ async def play_card(player_id: int, card_id: int):
         await sio.emit('inegleit', {"playerName": response["inegleit"]})
 
     if response["requestValid"] and "playerWon" in response:
-        await emit_server_message("{} won. Congratulations!".format(response["playerWon"]))
-        
+        if response["rank"] == 1:
+            await emit_server_message("{} won. Congratulations!".format(response["playerFinished"]))
+        else:
+            rank = response["rank"] 
+            text = ""
+            if rank == 2: text = "2nd"
+            elif rank == 3: text= "3rd"
+            else: text = f"{rank}th"
+            
+            await emit_server_message(f"{response['playerFinished']} came in {text}. Well done!")
     return response
     
 @router.post('/play_black_card')
@@ -133,8 +141,17 @@ async def play_black_card(player_id: int, card_id: int):
     if response["requestValid"] and "inegleit" in response:
         await sio.emit('inegleit', {"playerName": response["inegleit"]})
 
-    if response["requestValid"] and "playerWon" in response:
-        await emit_server_message("{} won. Congratulations!".format(response["playerWon"]))
+    if response["requestValid"] and "playerFinished" in response:
+        if response["rank"] == 1:
+            await emit_server_message("{} won. Congratulations!".format(response["playerFinished"]))
+        else:
+            rank = response["rank"] 
+            text = ""
+            if rank == 2: text = "2nd"
+            elif rank == 3: text= "3rd"
+            else: text = f"{rank}th"
+            
+            await emit_server_message(f"{response['playerFinished']} came in {text}. Well done!")
 
     return response
 
