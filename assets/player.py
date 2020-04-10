@@ -39,5 +39,6 @@ class Player():
             "id": self.attr["id"],
             "king": self.attr["king"],
             "numberOfCards": len(self.attr["hand"]), 
-            "saidUno": self.attr["said_uno"]
+            "saidUno": self.attr["said_uno"],
+            "finished": self.attr["finished"],
             }
