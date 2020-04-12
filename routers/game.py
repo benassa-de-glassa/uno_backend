@@ -45,9 +45,10 @@ async def emit_player_state(player_id, message):
         }
     )
 
-async def emit_notification(notification):
+async def emit_notification(_type, notification):
     await sio.emit('notification', 
         {
+            "type": _type,
             "notification": notification
         }
     )
@@ -120,7 +121,7 @@ async def play_card(player_id: int, card_id: int):
         await emit_server_message(f"{response['missedUno']} failed to say Uno, you know the rules..")
 
     if response["requestValid"] and "inegleit" in response:
-        await emit_notification(f"{response['inegleit']} has inegleit!")
+        await emit_notification("inegleit", f"{response['inegleit']} has inegleit!")
         # await sio.emit('inegleit', {"playerName": response["inegleit"]})
 
     if response["requestValid"] and "playerFinished" in response:
@@ -148,7 +149,7 @@ async def play_black_card(player_id: int, card_id: int):
         await emit_server_message(f"{response['missedUno']} failed to say Uno, you know the rules..")
 
     if response["requestValid"] and "inegleit" in response:
-        await emit_notification(f"{response['inegleit']} has inegleit!")
+        await emit_notification("inegleit", f"{response['inegleit']} has inegleit!")
         # await sio.emit('inegleit', {"playerName": response["inegleit"]})es
 
     if response["requestValid"] and "playerFinished" in response:
@@ -215,4 +216,6 @@ async def reset_game(player_id: int):
 async def insult_player(sender_id: int, receiver_id: int):
     sender = inegleit.players[sender_id].attr
     receiver = inegleit.players[receiver_id].attr
-    await emit_notification(insultgenerator(sender, receiver))
+    await emit_notification("insult", insultgenerator(sender, receiver))
+
+    return {"requestValid": True}

@@ -39,8 +39,8 @@ def insultgenerator(sender, receiver):
 		elif sender['penalty'] > 0:
 			insulttext = 'Being a %s %s, %s is unable to say "UNO" fast enough...' % (adj3, noun, sname)
 		elif sender['king']:
-			insulttext = 'By royal decree, the crown declares %s a %s, %s %s!' % (rname, adj1, ad2, noun)
+			insulttext = 'By royal decree, the crown declares %s a %s, %s %s!' % (rname, adj1, adj2, noun)
 		else:
 			# Standard insult
-			insulttext = '%s just called %s a %s, %s %s!' % (sname, rname, adj1, ad2, noun)
-	return {'Insult': insulttext}
+			insulttext = '%s just called %s a %s, %s %s!' % (sname, rname, adj1, adj2, noun)
+	return insulttext

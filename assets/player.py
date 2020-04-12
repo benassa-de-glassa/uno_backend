@@ -15,6 +15,7 @@ class Player():
             "name": name,
             "id": uid,
             "king": king,
+            "has_received_initial_cards": False,
             "hand": [],         # list of cards
             "said_uno": False,      
             "penalty": 0,       # punishment for not saying uno
