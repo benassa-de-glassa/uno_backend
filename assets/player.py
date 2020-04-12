@@ -19,6 +19,10 @@ class Player():
             "penalty": 0,           # int, punishment for not saying uno
             "has_received_initial_cards": False,
             "king": king,
+            "has_received_initial_cards": False,
+            "hand": [],         # list of cards
+            "said_uno": False,      
+            "penalty": 0,       # punishment for not saying uno
             "finished": False, 
             "rank": 0,
         }

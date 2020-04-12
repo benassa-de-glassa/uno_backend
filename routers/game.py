@@ -4,6 +4,7 @@ import datetime
 import socketio
 from fastapi import APIRouter, WebSocket
 
+from assets.insultgenerator import insultgenerator
 from assets.game import Inegleit
 
 router = APIRouter()
@@ -28,18 +29,26 @@ inegleit = Inegleit()
 
 async def emit_server_message(message):
     await sio.emit('message', 
-            { 
-                "message": { "sender": "server", 
-                             "text": message,
-                             "time": datetime.datetime.now().strftime("%H:%M:%S") }
-            }
-        )
+        { 
+            "message": { "sender": "server", 
+                            "text": message,
+                            "time": datetime.datetime.now().strftime("%H:%M:%S") }
+        }
+    )
 
 async def emit_player_state(player_id, message):
     await sio.emit('playerstate',
         {
             'player_id': player_id,
             'message': message
+        }
+    )
+
+async def emit_notification(_type, notification):
+    await sio.emit('notification', 
+        {
+            "type": _type,
+            "notification": notification
         }
     )
     
@@ -118,7 +127,8 @@ async def play_card(player_id: int, card_id: int):
         await emit_server_message(f"{response['missedUno']} failed to say Uno, you know the rules..")
 
     if response["requestValid"] and "inegleit" in response:
-        await sio.emit('inegleit', {"playerName": response["inegleit"]})
+        await emit_notification("inegleit", f"{response['inegleit']} has inegleit!")
+        # await sio.emit('inegleit', {"playerName": response["inegleit"]})
 
     if response["requestValid"] and "playerFinished" in response:
         if response["rank"] == 1:
@@ -145,7 +155,8 @@ async def play_black_card(player_id: int, card_id: int):
         await emit_server_message(f"{response['missedUno']} failed to say Uno, you know the rules..")
 
     if response["requestValid"] and "inegleit" in response:
-        await sio.emit('inegleit', {"playerName": response["inegleit"]})
+        await emit_notification("inegleit", f"{response['inegleit']} has inegleit!")
+        # await sio.emit('inegleit', {"playerName": response["inegleit"]})es
 
     if response["requestValid"] and "playerFinished" in response:
         if response["rank"] == 1:
@@ -206,3 +217,11 @@ async def reset_game(player_id: int):
     await emit_server_message("Game reset")
     await emit_player_state(-1, "kicked")
     return inegleit.reset_game(player_id)
+
+@router.post('/insult_player')
+async def insult_player(sender_id: int, receiver_id: int):
+    sender = inegleit.players[sender_id].attr
+    receiver = inegleit.players[receiver_id].attr
+    await emit_notification("insult", insultgenerator(sender, receiver))
+
+    return {"requestValid": True}

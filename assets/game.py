@@ -5,7 +5,6 @@ import json
 from .player import Player
 from .deck import Deck
 
-
 DEBUG = True
 
 logger = logging.getLogger("backend")
