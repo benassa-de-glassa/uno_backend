@@ -55,7 +55,7 @@ class Deck():
             self.N += 1
             # add two of each kind
             for i in range(12):
-                self.allcards.append(Card(color, i, self.N))
+                self.allcards.append(Card(color, i+1, self.N))
                 self.allcards.append(Card(color, i+1, self.N+1))
                 self.N += 2
         # creates the black cards

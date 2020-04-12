@@ -20,6 +20,7 @@ class Player():
             "has_received_initial_cards": False,
             "king": king,
             "finished": False, 
+            "rank": 0,
         }
         
     def add_cards(self, cards):
@@ -36,11 +37,12 @@ class Player():
 
     def to_json(self):
         return {
-                "name": self.attr["name"], 
-                "id": self.attr["id"],
-                "king": self.attr["king"],
-                "numberOfCards": len(self.attr["hand"]), 
-                "saidUno": self.attr["said_uno"],
-                "gotInitialCards": self.attr["has_received_initial_cards"],
-                "finished": self.attr["finished"],
-            }
+            "name": self.attr["name"], 
+            "id": self.attr["id"],
+            "king": self.attr["king"],
+            "numberOfCards": len(self.attr["hand"]), 
+            "saidUno": self.attr["said_uno"],
+            "gotInitialCards": self.attr["has_received_initial_cards"],
+            "finished": self.attr["finished"],
+            "rank": self.attr["rank"]
+        }

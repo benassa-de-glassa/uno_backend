@@ -1,7 +1,6 @@
 import logging
 
 import json
-import numpy as np
 
 from .player import Player
 from .deck import Deck
@@ -10,7 +9,6 @@ from .deck import Deck
 DEBUG = True
 
 logger = logging.getLogger("backend")
-
 
 class Inegleit():
     """
@@ -21,7 +19,7 @@ class Inegleit():
     The return value is always a dict containing always the key
     {"requestValid": (bool)} to indicate if, for example after a request
     to play a card, the card has actually been played.  If the request
-    is not valid, there isa {"message": (str)} keyword explaining the
+    is not valid, there is a {"message": (str)} keyword explaining the
     reason for the denied request.
     """
 
@@ -209,7 +207,10 @@ class Inegleit():
         if self.get_active_player().attr["finished"]:
             self.order.pop(self.active_index)
             self.n_players -= 1
-            self.active_index = (self.active_index - (not self.forward)) % self.n_players
+            if self.n_players:
+                self.active_index = (self.active_index - (not self.forward)) % self.n_players
+            else:
+                logger.info("Game finished")
             
         else:
             # 2*bool-1 is 1 if true and -1 if false #maths
@@ -621,8 +622,10 @@ class Inegleit():
 
         logger.info(message)
 
-        player.attr["finished"] = True
         self.winners.append(player.attr["id"])
+
+        player.attr["finished"] = True
+        player.attr["rank"] = len(self.winners)
 
         # still let the winner choose the color if he finishes with a black card
         if not self.can_choose_color:
