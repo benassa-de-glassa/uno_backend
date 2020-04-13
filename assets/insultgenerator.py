@@ -4,6 +4,9 @@
 import requests
 from random import random
 
+from bs4 import BeautifulSoup
+
+
 def insultgenerator(sender, receiver):
 
 	# Name of the player sending an insult
@@ -23,7 +26,7 @@ def insultgenerator(sender, receiver):
 			insulttext = '%s blames %s for their poor performance.' % (sname, rname)
 		else:
 			insulttext = '%s is fuming about this!' % (sname)
-	else:
+	elif rnd <  0.7:
 		# Get adjectives and nouns from APIs, use one adjetive to search for a related noun
 		adjectives_api = 'https://insult.mattbas.org/api/adjective'
 		adj1 = requests.get(adjectives_api).text
@@ -43,4 +46,17 @@ def insultgenerator(sender, receiver):
 		else:
 			# Standard insult
 			insulttext = '%s just called %s a %s, %s %s!' % (sname, rname, adj1, adj2, noun)
+	elif rnd < 0.8:
+		insult_api = 'https://www.rappad.co/api/battles/random_insult'
+		insult = requests.get(insult_api).json()
+		
+		insulttext = '%s yells at %s: %s' % (sname, rname, insult["insult"])
+	
+	else:
+		insult_api = 'https://www.kassoon.com/dnd/vicious-mockery-insult-generator/'
+		insult = requests.get(insult_api).text
+		soup = BeautifulSoup(insult, 'html.parser')
+
+		insulttext = soup.body.find_all('p')[3].contents[0]
+
 	return insulttext
