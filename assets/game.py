@@ -269,6 +269,15 @@ class Inegleit():
             if card.inegleitable(top_card):
                 # if the card can be inegleit make the player the active
                 # player and move on to the next player
+                
+                # ugly hack but should work: 
+                # need to check this in case somebody inegleits a black card 
+                # after somebody finishes with a black card
+                if self.get_active_player().attr["finished"]:
+                    self.order.pop(self.active_index)
+                    self.n_players -= 1
+                
+                # make the player that has inegleit the active player
                 self.active_index = self.order.index(player.attr["id"])
 
                 if self.penalty["own"]:
@@ -464,6 +473,7 @@ class Inegleit():
             response = "player does not have that card"
             logger.warning("Move denied:" + response)
             return {"requestValid": False, "message": response}
+
 
         response = self.validate_move(player, card, top_card)
 

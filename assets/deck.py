@@ -194,4 +194,4 @@ class Card():
         else:
             text = str(self.attr["number"])
 
-        return self.attr["color"] + " " + text
+        return f'{self.attr["color"]} {text} [{self.attr["id"]}]'
