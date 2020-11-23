@@ -170,6 +170,8 @@ class Card():
         """
         if self.attr["color"] == top_card.attr["color"] and self.attr["number"] == top_card.attr["number"]:
             return True
+        if self.attr["number"] == 9 and top_card.attr["number"] == 6:
+            return True        
         return False
 
     def able_to_raise_penalty(self, top_card):
