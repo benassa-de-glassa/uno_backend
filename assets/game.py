@@ -151,8 +151,6 @@ class Inegleit():
         """
         Deals cards of the deck and returns them to the frontend
         to display them.
-        TODO: should not be necessary to return the cards as update_cards
-        is called anyway.
         """
         if not player_id in self.players.keys():
             message = "Player with id {} not found!".format(player_id)
